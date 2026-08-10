@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	user32     = syscall.NewLazyDLL("user32.dll")
-	keybdEvent = user32.NewProc("keybd_event")
+	user32          = syscall.NewLazyDLL("user32.dll")
+	keybdEvent      = user32.NewProc("keybd_event")
+	lockWorkStation = user32.NewProc("LockWorkStation")
 )
 
 const keyeventfKeyup = 0x0002
@@ -88,4 +89,17 @@ func sendMediaKey(key string) error {
 	}
 	tapVK(vk)
 	return nil
+}
+
+func runSystemAction(key string) error {
+	switch key {
+	case "lock":
+		result, _, callErr := lockWorkStation.Call()
+		if result == 0 {
+			return fmt.Errorf("LockWorkStation failed: %v", callErr)
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported system action %q", key)
+	}
 }

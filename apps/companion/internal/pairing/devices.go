@@ -11,22 +11,25 @@ import (
 
 	"nexusdeck/companion/internal/actions"
 	ncrypto "nexusdeck/companion/internal/crypto"
+	"nexusdeck/companion/internal/foreground"
+	"nexusdeck/companion/internal/integrations"
 	"nexusdeck/companion/internal/protocol"
 	"nexusdeck/companion/internal/realtime"
 	"nexusdeck/companion/internal/store"
 )
 
 type DeviceManager struct {
-	store   *store.Store
-	ctx     context.Context
-	cancel  context.CancelFunc
-	mu      sync.Mutex
-	workers map[string]context.CancelFunc
+	store        *store.Store
+	integrations *integrations.Manager
+	ctx          context.Context
+	cancel       context.CancelFunc
+	mu           sync.Mutex
+	workers      map[string]context.CancelFunc
 }
 
-func NewDeviceManager(s *store.Store) *DeviceManager {
+func NewDeviceManager(s *store.Store, integrationManager *integrations.Manager) *DeviceManager {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &DeviceManager{store: s, ctx: ctx, cancel: cancel, workers: map[string]context.CancelFunc{}}
+	return &DeviceManager{store: s, integrations: integrationManager, ctx: ctx, cancel: cancel, workers: map[string]context.CancelFunc{}}
 }
 
 func (m *DeviceManager) Sync() {
@@ -105,9 +108,16 @@ func (m *DeviceManager) statusLoop(ctx context.Context, done <-chan struct{}, se
 	defer ticker.Stop()
 	send := func() {
 		host, _ := os.Hostname()
-		message := map[string]any{"type": "status", "id": mustRandom(10), "ts": time.Now().UnixMilli(), "body": map[string]any{
+		body := map[string]any{
 			"online": true, "hostname": host, "platform": runtime.GOOS, "version": protocol.AppVersion,
-		}}
+		}
+		if active, ok := foreground.Current(); ok {
+			body["activeApp"] = active
+		}
+		if m.integrations != nil {
+			body["integrations"] = m.integrations.Statuses()
+		}
+		message := map[string]any{"type": "status", "id": mustRandom(10), "ts": time.Now().UnixMilli(), "body": body}
 		env, err := ncrypto.EncryptJSON(message, key, fmt.Sprintf("nexus:%s:v1", device.RoomID))
 		if err == nil {
 			_ = session.Broadcast(env)
@@ -141,10 +151,14 @@ func (m *DeviceManager) handleDeviceMessage(session *realtime.Session, device pr
 		return
 	}
 	body, err := actions.DecodeBody(msg.Body)
+	var report actions.ExecutionReport
 	if err == nil {
-		err = actions.Execute(body.Action)
+		report, err = actions.ExecuteWithReport(body.Action, m.integrations)
 	}
 	ackBody := map[string]any{"commandId": msg.ID, "ok": err == nil}
+	if body.Action.Type == "macro" || body.Action.Type == "integration" {
+		ackBody["report"] = report
+	}
 	if err != nil {
 		ackBody["error"] = err.Error()
 	}

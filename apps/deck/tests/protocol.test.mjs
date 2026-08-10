@@ -7,6 +7,8 @@ test('supported actions validate', () => {
   assert.equal(validateAction({type:'launch_app', path:'C:\\App\\app.exe', args:[]}), true);
   assert.equal(validateAction({type:'hotkey', keys:['CTRL','SHIFT','K']}), true);
   assert.equal(validateAction({type:'media', key:'play_pause'}), true);
+  assert.equal(validateAction({type:'system', key:'lock'}), true);
+  assert.equal(validateAction({type:'integration', service:'browser', command:'new_tab', params:{}}), true);
 });
 
 test('shell action is not supported', () => {

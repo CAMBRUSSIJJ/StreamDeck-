@@ -1,27 +1,43 @@
-# Segurança
+# Segurança — Nexus Deck v1.0
 
-## Modelo da v0.2
+## Princípios
 
-O Nexus Deck usa canais públicos do Supabase Realtime somente como transporte. O conteúdo sensível é cifrado no cliente e no Companion.
+O Nexus Deck segue um modelo **Local First**. O caminho preferencial é iPad ↔ Companion pela mesma rede privada. O Cloud Relay via Supabase permanece opcional e legado.
 
-### Pareamento
+## Pareamento local
 
-- Código temporário de 6 dígitos, válido por curto período.
-- Chaves efêmeras ECDH P-256 em ambos os lados.
-- Chave de pareamento derivada por HKDF-SHA256.
-- O segredo permanente do dispositivo é transferido dentro de AES-256-GCM.
+- código temporário de 6 dígitos;
+- segredo aleatório por dispositivo;
+- autorização persistida apenas no Companion e no iPad correspondente;
+- revogação individual pelo painel Windows;
+- mensagens com ID e timestamp para reduzir replay.
 
-### Sessão permanente
+## Transporte
 
-- Cada dispositivo recebe um `roomId` aleatório de 128 bits.
-- Cada dispositivo recebe uma chave AES de 256 bits.
-- Comandos, acknowledgements e status são cifrados com AES-GCM.
-- IV aleatório de 96 bits por mensagem.
-- AAD inclui o canal e a versão do protocolo.
+Em contexto seguro, o Nexus usa AES-256-GCM. Em Safari aberto por HTTP em IP privado, Web Crypto pode não estar disponível como Secure Context; nesse caso a V1.0 usa um token aleatório de alta entropia e restringe o servidor a endereços privados/loopback/link-local. Por isso o modo HTTP LAN deve ser usado somente em redes Wi‑Fi privadas e confiáveis.
 
-## Limitações
+## Execução no Windows
 
-- Um atacante que controlar o projeto Supabase pode negar serviço, embora não deva conseguir ler comandos cifrados sem a chave do dispositivo.
-- O pareamento de 6 dígitos deve ser iniciado apenas quando o usuário estiver pronto para parear.
-- Para ambientes empresariais, a próxima etapa recomendada é usar Supabase Auth + canais privados/RLS, além de assinatura de releases do Companion.
-- Não exponha chaves de `service_role` no Deck ou no Companion.
+O protocolo não possui ação de shell genérica. O Companion aceita apenas famílias de ação registradas e validadas:
+
+- URL;
+- aplicativo `.exe`;
+- hotkeys limitadas;
+- mídia/volume;
+- bloqueio de sessão;
+- integrações registradas;
+- macros compostas pelas mesmas ações permitidas.
+
+Comandos arbitrários de CMD, PowerShell ou shell não fazem parte do protocolo remoto.
+
+## Integrações
+
+Senhas do OBS e tokens OAuth do Spotify ficam no arquivo de configuração local do Companion. Endpoints de status e relatórios de diagnóstico expõem somente informações sanitizadas.
+
+## Backups e diagnósticos
+
+Backups do Deck não incluem dispositivos, segredos ou tokens. A V1.0 adiciona checksum de integridade ao Backup V2. Relatórios de diagnóstico também omitem credenciais.
+
+## Releases
+
+Os executáveis gerados neste projeto não são assinados digitalmente por padrão. O Windows SmartScreen pode exibir aviso em builds baixados. Para distribuição pública em escala, recomenda-se assinatura Authenticode e publicação dos hashes SHA-256 junto à release.

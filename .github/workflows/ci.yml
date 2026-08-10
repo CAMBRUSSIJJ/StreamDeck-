@@ -21,16 +21,24 @@ jobs:
       - run: npm run check
 
   companion:
-    name: Companion tests + Windows build
+    name: Companion + Setup Windows x64
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
+      - name: Sync local Deck
+        run: npm run sync:local-deck
       - name: Test
         working-directory: apps/companion
         run: go test ./...
+      - name: Vet
+        working-directory: apps/companion
+        run: go vet ./...
       - name: Build Windows x64
         working-directory: apps/companion
         env:
@@ -38,10 +46,18 @@ jobs:
           GOARCH: amd64
           CGO_ENABLED: '0'
         run: |
-          mkdir -p ../../dist
+          mkdir -p ../../dist ./cmd/nexus-installer/payload
           go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../../dist/NexusDeck-Companion.exe ./cmd/nexus-deck
+          cp ../../dist/NexusDeck-Companion.exe ./cmd/nexus-installer/payload/NexusDeck-Companion.exe
+          go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../../dist/NexusDeck-Setup.exe ./cmd/nexus-installer
+          sha256sum ../../dist/NexusDeck-Companion.exe > ../../dist/NexusDeck-Companion.exe.sha256
+          sha256sum ../../dist/NexusDeck-Setup.exe > ../../dist/NexusDeck-Setup.exe.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: NexusDeck-Companion-Windows-x64
-          path: dist/NexusDeck-Companion.exe
+          name: NexusDeck-Windows-x64
+          path: |
+            dist/NexusDeck-Companion.exe
+            dist/NexusDeck-Companion.exe.sha256
+            dist/NexusDeck-Setup.exe
+            dist/NexusDeck-Setup.exe.sha256
           if-no-files-found: error

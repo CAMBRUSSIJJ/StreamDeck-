@@ -11,6 +11,8 @@ test('presets de widgets trazem tamanhos adequados', () => {
   assert.equal(defaultControlForKind('volume').size, 'wide');
   assert.equal(defaultControlForKind('media_panel').size, 'large');
   assert.equal(defaultControlForKind('toggle').state, false);
+  assert.equal(defaultControlForKind('macro').action.type, 'macro');
+  assert.equal(defaultControlForKind('macro').size, 'wide');
 });
 
 test('volume é limitado entre 0 e 100', () => {

@@ -1,40 +1,83 @@
-# Arquitetura Nexus Deck v0.5
+# Arquitetura Nexus Deck v1.0
 
 ```text
-GitHub monorepo
-├── apps/deck       -> Vercel -> Safari/PWA no iPad
-├── apps/companion  -> Windows .exe
-└── packages/protocol
-
-          Nexus Deck PWA
-      ┌────────┴────────┐
-      │                 │
-  UI/Widgets        Editor local
-      │                 │
-      └────────┬────────┘
-               │
-       protocolo de ações
-               │
-        ┌──────┴──────┐
-        │             │
-   Relay opcional   futuro modo local
-        │             │
-        └──────┬──────┘
-               │
-      Windows Companion
+                         ┌────────────────────┐
+                         │ Vercel · opcional  │
+                         │ preview / edição   │
+                         └─────────┬──────────┘
+                                   │ backup V2
+                                   ▼
+┌───────────────────┐       Wi‑Fi / LAN      ┌────────────────────────┐
+│ iPad / Safari     │ ◀────────────────────▶ │ Nexus Companion        │
+│ Deck local :38474 │                        │ Admin 127.0.0.1:38473 │
+└───────────────────┘                        └───────────┬────────────┘
+                                                       │
+                              ┌────────────────────────┼────────────────────┐
+                              ▼                        ▼                    ▼
+                         Windows APIs            Integrações          Perfis/estado
+                                             OBS / Spotify /       foreground app
+                                             Discord / Browser
 ```
 
-## Camadas
+## Processo Windows
 
-- **Interface:** botões, toggles, sliders, mídia, status e relógio.
-- **Estado local:** páginas, ordem, aparência, valores e preferências ficam no iPad.
-- **Protocolo:** apenas ações explicitamente permitidas são aceitas.
-- **Companion:** executa URL, aplicativo, hotkeys e comandos de mídia no Windows.
-- **Transporte:** Supabase continua opcional; a arquitetura foi mantida separada para permitir modo local-first posteriormente.
+A V1.0 usa uma única instância do Companion. Um segundo lançamento detecta o painel em `127.0.0.1:38473`, abre a instância existente e encerra o novo processo.
 
-## Segurança
+No Windows, o Companion também cria um ícone de bandeja. O menu oferece:
 
-- Sem execução arbitrária de shell.
-- Chaves de dispositivo não ficam expostas no HTML.
-- A camada visual funciona sem credenciais de nuvem.
-- Companion é binário único, compilável sem CGO.
+- Abrir painel administrativo;
+- Abrir Nexus Deck local;
+- Sair do Companion.
+
+A inicialização automática é registrada em `HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run` com o argumento `--background`, evitando abrir o navegador em cada login.
+
+## Serviços
+
+- `127.0.0.1:38473`: painel administrativo e APIs de configuração/diagnóstico.
+- `0.0.0.0:38474`: interface do Deck e API de controle; middleware rejeita IPs externos à rede privada/loopback/link-local.
+
+## Pareamento e transporte
+
+- código temporário de 6 dígitos;
+- segredo aleatório por dispositivo;
+- IDs e timestamps para proteção contra replay;
+- AES-256-GCM em contexto seguro;
+- fallback LAN autenticado por token para Safari sobre HTTP local.
+
+## Ações e macros
+
+Ações são tipadas e validadas. Não existe ação de shell genérica. Macros aceitam até 20 etapas, atrasos limitados e condições simples, reutilizando as mesmas ações allowlisted.
+
+## Integrações
+
+O `integrations.Manager` isola adaptadores:
+
+```text
+Integration Manager
+ ├─ OBS Adapter ───── obs-websocket 5.x
+ ├─ Spotify Adapter ─ OAuth PKCE + Web API
+ ├─ Discord Adapter ─ hotkeys configuráveis
+ └─ Browser Adapter ─ hotkeys allowlisted
+```
+
+## Diagnóstico V1.0
+
+O painel administrativo testa localmente:
+
+- disponibilidade do painel;
+- permissão de escrita no diretório de configuração;
+- validade do endereço LAN;
+- disponibilidade TCP da porta `38474`;
+- presença de iPads autorizados;
+- estado da inicialização automática;
+- plataforma de execução.
+
+O relatório exportado é sanitizado e não inclui credenciais.
+
+## Backup V2
+
+O backup portátil do iPad contém páginas, controles, macros, perfis e preferências visuais. A V2 inclui checksum para detectar arquivo incompleto/corrompido. Dispositivos, segredos e tokens continuam fora do backup.
+
+## Atualizações
+
+O Companion consulta a release mais recente de `CAMBRUSSIJJ/StreamDeck` pelo GitHub Releases apenas quando o usuário solicita. A V1.0 informa se há versão nova e abre a release; não substitui o executável silenciosamente.

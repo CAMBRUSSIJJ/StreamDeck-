@@ -14,34 +14,119 @@
     </header>
 
     <section class="grid">
-      <article class="card hero">
-        <span class="eyebrow">PAREAMENTO</span>
-        <h2>Conecte seu iPad</h2>
-        <p>O código expira automaticamente e é usado apenas para negociar a chave criptográfica entre os dispositivos.</p>
+      <article class="card hero local-hero">
+        <span class="eyebrow">NEXUS LOCAL</span>
+        <h2>Controle pela sua rede Wi‑Fi</h2>
+        <p>O iPad fala diretamente com este computador. Supabase não é necessário para o modo local.</p>
+        <div class="local-url-wrap">
+          <span>Abra este endereço no Safari do iPad</span>
+          <div class="local-url-row"><code id="local-url">—</code><button id="copy-url" class="ghost compact" type="button">Copiar</button></div>
+        </div>
         <div id="pair-box" class="pair-box hidden">
           <div id="pair-code" class="pair-code">000000</div>
           <div id="pair-time" class="muted">Expira em 02:00</div>
         </div>
-        <button id="pair-start" class="primary">Iniciar pareamento</button>
+        <button id="pair-start" class="primary">Gerar código local</button>
+        <div class="network-note">Na primeira execução, o Windows pode pedir permissão de Firewall. Permita apenas em <strong>redes privadas</strong>.</div>
       </article>
 
       <article class="card">
-        <span class="eyebrow">CLOUD RELAY</span>
+        <span class="eyebrow">CLOUD RELAY · OPCIONAL</span>
         <h2>Supabase</h2>
+        <p>Use apenas se quiser manter o modo Cloud no futuro. O Nexus Local funciona sem esta configuração.</p>
         <form id="settings-form">
           <label>Project URL<input id="supabase-url" placeholder="https://xxxx.supabase.co" autocomplete="off" /></label>
-          <label>Anon / publishable key<textarea id="supabase-key" rows="4" placeholder="eyJ..." spellcheck="false"></textarea></label>
-          <button class="secondary" type="submit">Salvar configuração</button>
+          <label>Anon / publishable key<textarea id="supabase-key" rows="4" placeholder="sb_publishable_..." spellcheck="false"></textarea></label>
+          <button class="secondary" type="submit">Salvar Cloud Relay</button>
         </form>
       </article>
     </section>
 
+    <section class="product-section">
+      <div class="section-heading product-heading"><div><span class="eyebrow">V1.0 · PRONTO PARA USO</span><h2>Primeiros passos</h2><p>O Companion agora pode iniciar com o Windows, permanecer na bandeja e diagnosticar a conexão local.</p></div><span id="setup-progress" class="integration-summary">Verificando…</span></div>
+      <div class="setup-grid">
+        <article class="card setup-card"><span class="setup-index">01</span><div><strong>Companion ativo</strong><small id="setup-companion">Verificando…</small></div></article>
+        <article class="card setup-card"><span class="setup-index">02</span><div><strong>Abra o Nexus no iPad</strong><small id="setup-url">Aguardando endereço local…</small></div></article>
+        <article class="card setup-card"><span class="setup-index">03</span><div><strong>Pareie o iPad</strong><small id="setup-pair">Nenhum iPad autorizado</small></div></article>
+        <article class="card setup-card"><span class="setup-index">04</span><div><strong>Deixe automático</strong><small id="setup-startup">Inicialização automática desativada</small></div></article>
+      </div>
+    </section>
+
+    <section class="system-grid">
+      <article class="card system-card">
+        <div class="system-head"><div><span class="eyebrow">WINDOWS</span><h2>Inicialização e bandeja</h2></div><span class="system-badge">V1.0</span></div>
+        <p>Fechar o painel não encerra o Companion. Ele continua disponível pela bandeja do Windows.</p>
+        <label class="switch-row"><input id="startup-toggle" type="checkbox" /><span class="switch-track"><span></span></span><div><strong>Iniciar com o Windows</strong><small>Executa em segundo plano e mantém o iPad disponível.</small></div></label>
+        <div class="system-note">Na bandeja: duplo clique abre o painel; botão direito abre painel, Deck local ou encerra o Companion.</div>
+      </article>
+
+      <article class="card system-card">
+        <div class="system-head"><div><span class="eyebrow">ATUALIZAÇÕES</span><h2>Nexus Companion</h2></div><span id="update-state" class="system-badge muted-badge">Manual</span></div>
+        <p>Verifique a release publicada no GitHub sem alterar seus dados locais.</p>
+        <div id="update-detail" class="update-detail">Versão instalada: <strong id="installed-version">—</strong></div>
+        <div class="button-row"><button id="update-check" class="secondary" type="button">Verificar atualização</button><button id="update-open" class="ghost hidden" type="button">Abrir release</button></div>
+      </article>
+    </section>
+
+    <section class="card diagnostics-card">
+      <div class="section-heading"><div><span class="eyebrow">DIAGNÓSTICO</span><h2>Saúde do Nexus</h2><p>Testa configuração, porta local, pareamento e inicialização. O relatório não inclui chaves, tokens ou senhas.</p></div><div class="button-row diagnostics-actions"><button id="diagnostics-run" class="secondary" type="button">Executar diagnóstico</button><button id="diagnostics-export" class="ghost" type="button">Exportar relatório</button></div></div>
+      <div id="diagnostics-summary" class="diagnostics-summary">Ainda não executado.</div>
+      <div id="diagnostics-list" class="diagnostics-list"></div>
+    </section>
+
+
+    <section class="integrations-section">
+      <div class="section-heading integrations-heading"><div><span class="eyebrow">INTEGRAÇÕES PROFISSIONAIS</span><h2>Conectores do Nexus</h2><p>OBS e Spotify usam APIs próprias. Discord e navegador usam uma camada desktop segura de compatibilidade.</p></div><span id="integration-summary" class="integration-summary">Verificando…</span></div>
+      <div class="integrations-grid">
+        <article class="card integration-card" data-integration="obs">
+          <div class="integration-head"><div><span class="integration-icon obs">OBS</span><div><strong>OBS Studio</strong><small>obs-websocket 5.x</small></div></div><span id="obs-state" class="integration-state">—</span></div>
+          <form id="obs-form">
+            <label>WebSocket URL<input id="obs-url" value="ws://127.0.0.1:4455" placeholder="ws://127.0.0.1:4455" /></label>
+            <label>Senha<input id="obs-password" type="password" placeholder="Deixe vazio para manter a senha atual" autocomplete="off" /></label>
+            <div class="button-row"><button class="secondary" type="submit">Salvar OBS</button><button id="obs-test" class="ghost" type="button">Testar</button></div>
+          </form>
+          <div id="obs-detail" class="integration-detail">Cenas, live, gravação, câmera virtual e áudio.</div>
+        </article>
+
+        <article class="card integration-card" data-integration="spotify">
+          <div class="integration-head"><div><span class="integration-icon spotify">S</span><div><strong>Spotify</strong><small>Web API · OAuth PKCE</small></div></div><span id="spotify-state" class="integration-state">—</span></div>
+          <form id="spotify-form">
+            <label>Client ID<input id="spotify-client-id" placeholder="Client ID do app Spotify" autocomplete="off" /></label>
+            <div class="redirect-note">Redirect URI para cadastrar no Spotify:<code>http://127.0.0.1:38473/api/integrations/spotify/callback</code></div>
+            <div class="button-row"><button class="secondary" type="submit">Salvar Client ID</button><button id="spotify-connect" class="primary inline-primary" type="button">Conectar</button><button id="spotify-disconnect" class="ghost" type="button">Desconectar</button></div>
+          </form>
+          <div id="spotify-detail" class="integration-detail">Play, pause, faixa, volume, aleatório e repetição.</div>
+        </article>
+
+        <article class="card integration-card" data-integration="discord">
+          <div class="integration-head"><div><span class="integration-icon discord">D</span><div><strong>Discord Desktop</strong><small>Compatibilidade por atalhos</small></div></div><span id="discord-state" class="integration-state">—</span></div>
+          <form id="discord-form">
+            <label>Alternar microfone<input id="discord-mute-hotkey" placeholder="CTRL+SHIFT+M" /></label>
+            <label>Alternar áudio<input id="discord-deafen-hotkey" placeholder="CTRL+SHIFT+D" /></label>
+            <button class="secondary" type="submit">Salvar atalhos</button>
+          </form>
+          <div id="discord-detail" class="integration-detail">Os atalhos devem coincidir com os keybinds configurados no Discord.</div>
+        </article>
+
+        <article class="card integration-card" data-integration="browser">
+          <div class="integration-head"><div><span class="integration-icon browser">WWW</span><div><strong>Navegador</strong><small>Chrome · Edge · compatíveis</small></div></div><span id="browser-state" class="integration-state">—</span></div>
+          <div class="browser-command-grid"><span>Nova aba</span><span>Fechar aba</span><span>Reabrir</span><span>Próxima</span><span>Anterior</span><span>Reload</span><span>Barra URL</span><span>Tela cheia</span><span>Anônima</span></div>
+          <div id="browser-detail" class="integration-detail">Funciona com o navegador em primeiro plano usando atalhos padrão do Windows.</div>
+        </article>
+      </div>
+    </section>
+
     <section class="card devices-card">
-      <div class="section-heading"><div><span class="eyebrow">DISPOSITIVOS</span><h2>iPads pareados</h2></div><button id="refresh" class="ghost">Atualizar</button></div>
+      <div class="section-heading"><div><span class="eyebrow">DISPOSITIVOS LOCAIS</span><h2>iPads autorizados</h2></div><button id="refresh" class="ghost">Atualizar</button></div>
+      <div id="local-devices" class="devices"></div>
+    </section>
+
+    <section class="card devices-card cloud-devices-card">
+      <div class="section-heading"><div><span class="eyebrow">CLOUD · LEGADO/OPCIONAL</span><h2>Dispositivos via relay</h2></div></div>
       <div id="devices" class="devices"></div>
     </section>
 
-    <footer><span id="version">v0.5.0</span><span id="config-path"></span></footer>
+    <footer><span id="version">v1.0.0</span><span id="config-path"></span></footer>
   </main>
   <div id="toast" class="toast hidden"></div>
   <script src="/app.js" defer></script>

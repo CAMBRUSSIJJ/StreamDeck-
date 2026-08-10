@@ -7,6 +7,6 @@ export default function handler(request, response) {
     configured: Boolean(url && anonKey),
     supabaseUrl: url,
     supabaseAnonKey: anonKey,
-    version: '0.5.0'
+    version: '1.0.0'
   });
 }
