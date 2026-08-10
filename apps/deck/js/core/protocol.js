@@ -1,6 +1,6 @@
 import { validateIntegrationAction } from './integrations.js';
 export const PROTOCOL_VERSION = 1;
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';
 
 export const actionLabels = {
   open_url: 'Abrir URL',

@@ -50,7 +50,7 @@
     <main class="workspace">
       <section class="workspace-head">
         <div class="workspace-title">
-          <div class="section-kicker">DECK ATIVO</div>
+          <div class="section-kicker">PAINEL ATIVO</div>
           <div class="title-line">
             <h1 id="page-title">Principal</h1>
             <span id="edit-badge" class="mode-badge hidden">EDITANDO</span>
@@ -127,6 +127,12 @@
           </label>
           <label>Nome<input id="btn-label" maxlength="28" required placeholder="Ex.: Obsidian" /></label>
           <label>Símbolo<input id="btn-icon" maxlength="4" placeholder="⌘" /></label>
+          <label class="app-icon-field">Ícone do aplicativo
+            <select id="btn-app-icon" aria-label="Ícone do aplicativo">
+              <option value="auto">Automático</option>
+              <option value="none">Sem ícone de app</option>
+            </select>
+          </label>
           <label>Cor<input id="btn-color" type="color" value="#6478ff" /></label>
           <label>Tamanho
             <select id="btn-size">
@@ -230,7 +236,7 @@
       </div>
 
       <section class="settings-section">
-        <div class="settings-heading"><div><h3>Aparência</h3><p>Escolha a cor principal da interface.</p></div></div>
+        <div class="settings-heading"><div><h3>Visual Nexus Pro</h3><p>Interface mais sóbria, compacta e centrada nos aplicativos.</p></div></div>
         <div id="accent-picker" class="accent-picker" role="radiogroup" aria-label="Cor de destaque">
           <button class="accent-swatch swatch-indigo" data-accent="indigo" type="button" aria-label="Índigo"></button>
           <button class="accent-swatch swatch-cyan" data-accent="cyan" type="button" aria-label="Ciano"></button>
@@ -266,7 +272,7 @@
           <div><span>Endereço local</span><strong id="local-url">—</strong></div>
           <div><span>Cloud Relay</span><strong id="cloud-status">Verificando…</strong></div>
           <div><span>Protocolo</span><strong>v1 · AES-256-GCM</strong></div>
-          <div><span>Interface</span><strong>V1.0.0 · Stable</strong></div>
+          <div><span>Interface</span><strong>V1.1.0 · Nexus Pro</strong></div>
         </div>
         <div class="settings-actions-row diagnostic-actions-row">
           <button id="deck-diagnostic" class="ghost-button" type="button">Diagnóstico rápido</button>
@@ -285,7 +291,7 @@
       </section>
 
       <section class="settings-section">
-        <div class="settings-heading"><div><h3>Primeiros passos</h3><p>Reabra a introdução da V1.0 para revisar conexão, pareamento e personalização.</p></div></div>
+        <div class="settings-heading"><div><h3>Primeiros passos</h3><p>Reabra a introdução para revisar conexão, pareamento e personalização.</p></div></div>
         <button id="onboarding-open" class="ghost-button" type="button">Abrir introdução</button>
       </section>
 
@@ -300,7 +306,7 @@
     <div class="dialog-content">
       <div class="onboarding-top">
         <div class="brand-mark onboarding-mark" aria-hidden="true"><span></span><span></span></div>
-        <div><div class="section-kicker">NEXUS DECK V1.0</div><h2>Seu painel está pronto.</h2></div>
+        <div><div class="section-kicker">NEXUS DECK V1.1</div><h2>Seu painel está pronto.</h2></div>
         <button id="onboarding-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
       </div>
       <div class="onboarding-progress"><span id="onboarding-progress-bar"></span></div>

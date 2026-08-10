@@ -12,9 +12,9 @@ const defaults = {
   pages: [
     {
       id: 'main', name: 'Principal', icon: 'home', buttons: [
-        { id:'browser', kind:'button', label:'Navegador', icon:'◎', color:'#4f8cff', size:'square', action:{type:'open_url', url:'https://www.google.com'} },
-        { id:'obsidian', kind:'button', label:'Obsidian', icon:'◈', color:'#8b6cff', size:'square', action:{type:'open_url', url:'obsidian://open'} },
-        { id:'mail', kind:'button', label:'E-mail', icon:'✉', color:'#31b8ff', size:'square', action:{type:'open_url', url:'https://mail.google.com'} },
+        { id:'browser', kind:'button', label:'Navegador', icon:'◎', appIcon:'chrome', color:'#4285F4', size:'square', action:{type:'open_url', url:'https://www.google.com'} },
+        { id:'obsidian', kind:'button', label:'Obsidian', icon:'◈', appIcon:'obsidian', color:'#8B5CF6', size:'square', action:{type:'open_url', url:'obsidian://open'} },
+        { id:'mail', kind:'button', label:'E-mail', icon:'✉', appIcon:'gmail', color:'#EA4335', size:'square', action:{type:'open_url', url:'https://mail.google.com'} },
         { id:'play', kind:'button', label:'Play / Pause', icon:'▶', color:'#42d98b', size:'square', action:{type:'media', key:'play_pause'} },
         { id:'mute', kind:'toggle', label:'Silenciar', icon:'◌', color:'#ff6573', size:'square', state:false, action:{type:'media', key:'volume_mute'} },
         { id:'volume', kind:'volume', label:'Volume', icon:'🔊', color:'#ffb94b', size:'wide', value:50 },
@@ -42,6 +42,7 @@ function normalizeControl(button) {
   const normalized = {
     ...button,
     kind,
+    appIcon: button.appIcon || 'auto',
     size: allowedSizes.has(button.size) ? button.size : (defaultSizes[kind] || (button.id === 'volup' ? 'wide' : 'square'))
   };
   if (kind === 'volume') normalized.value = clampVolume(button.value ?? 50);
@@ -120,7 +121,7 @@ export function exportPortableState(state) {
   const payload = {
     format: 'nexus-deck-backup',
     version: 2,
-    appVersion: '1.0.0',
+    appVersion: '1.1.0',
     exportedAt: new Date().toISOString(),
     activePageId: state.activePageId,
     preferences: clone(state.preferences || defaults.preferences),

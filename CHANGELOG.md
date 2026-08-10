@@ -1,19 +1,24 @@
 # Changelog
 
+## 1.1.0 — Nexus Pro Layout
+
+- Redesign visual completo da interface do iPad com foco em produto profissional e redução de efeitos decorativos.
+- Nova paleta graphite, superfícies sólidas, sombras discretas e hierarquia tipográfica mais limpa.
+- Grid padrão de cinco colunas em telas largas e densidade adaptativa para iPad em paisagem/retrato.
+- Cards redesenhados: compactos, sem glow, com linha de acento discreta e estados táteis mais claros.
+- Topbar, dock, modais, editor e widgets alinhados à nova linguagem Nexus Pro.
+- Nova biblioteca `js/ui/app-icons.js` com ícones vetoriais embutidos de Chrome, Edge, Obsidian, Spotify, Discord, OBS Studio, VS Code, Notion, Gmail, Outlook, WhatsApp, YouTube e Twitch.
+- Detecção automática de ícone por nome, URL, executável e integração, com seleção manual no editor.
+- Preview do editor atualizado para renderizar os ícones de aplicativos.
+- Migração transparente: controles antigos passam a usar `appIcon: auto` sem perder dados.
+- Cache PWA atualizado para `nexus-deck-v1.1.0`.
+- Companion/Setup recompilados para incluir a interface local V1.1.
+
 ## 1.0.0 — Stable
 
-- Instalador Windows de um clique com instalação por usuário, startup, atalho e desinstalação.
-- Companion com ícone na bandeja do Windows e menu para painel, Deck local e saída.
-- Inicialização automática configurável pelo painel administrativo.
-- Modo single-instance para evitar conflitos de porta em lançamentos repetidos.
-- Onboarding V1.0 no iPad com quatro etapas e opção de reabrir pelos Ajustes.
-- Diagnóstico completo no Companion: configuração, endereço LAN, porta local, pareamento, startup e plataforma.
-- Exportação de diagnóstico sanitizado sem tokens, senhas ou chaves.
-- Diagnóstico rápido no iPad com registro local limitado de erros de runtime.
-- Backup portátil V2 com checksum, resumo/preview antes da importação e compatibilidade com backups V1.
-- Verificador de atualização pelo GitHub Releases, sem auto-instalação silenciosa.
-- Cache PWA atualizado para `nexus-deck-v1.0.0`.
-- Versões do protocolo, interface e Companion consolidadas em `1.0.0`.
+- Instalador Windows, tray, single-instance e inicialização automática.
+- Onboarding no iPad, diagnóstico local, backup V2 com checksum e checagem de atualização.
+- Consolidação da fundação construída entre V0.4 e V0.9.
 
 ## 0.9.0 — Integrações Profissionais
 

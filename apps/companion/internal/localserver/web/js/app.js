@@ -8,6 +8,7 @@ import { CONTROL_KIND_LABELS, applyKindPreset, clampVolume, defaultControlForKin
 import { findMatchingPage, normalizeProfile, profileAppsText, profileLabel } from './core/profiles.js';
 import { integrationActionLabel, integrationCommand, integrationDescriptor, integrationServices, normalizeIntegrationAction } from './core/integrations.js';
 import { hydrateStaticIcons, iconSvg, semanticIcon } from './ui/icons.js';
+import { APP_ICON_OPTIONS, resolvedAppIcon } from './ui/app-icons.js';
 
 const $ = selector => document.querySelector(selector);
 const els = {
@@ -15,7 +16,7 @@ const els = {
   pageDialog: $('#page-dialog'), pageClose: $('#page-close'), pageList: $('#page-list'), pageCreate: $('#page-create'), newPageName: $('#new-page-name'),
   devicePill: $('#device-pill'), deviceName: $('#device-name'), deviceStatusText: $('#device-status-text'), deviceDialog: $('#device-dialog'), deviceList: $('#device-list'), deviceClose: $('#device-close'), pairCode: $('#pair-code'), pairStart: $('#pair-start'), pairProgress: $('#pair-progress'),
   settingsOpen: $('#settings-open'), settingsDialog: $('#settings-dialog'), settingsClose: $('#settings-close'), cloudStatus: $('#cloud-status'), localStatus: $('#local-status'), localUrl: $('#local-url'), resetData: $('#reset-data'), exportDeck: $('#export-deck'), importDeck: $('#import-deck'), importDeckFile: $('#import-deck-file'), accentPicker: $('#accent-picker'), smartProfilesToggle: $('#smart-profiles-toggle'), foregroundStatus: $('#foreground-status'), integrationObsStatus: $('#integration-obs-status'), integrationSpotifyStatus: $('#integration-spotify-status'), integrationDiscordStatus: $('#integration-discord-status'), integrationBrowserStatus: $('#integration-browser-status'), deckDiagnostic: $('#deck-diagnostic'), deckDiagnosticExport: $('#deck-diagnostic-export'), deckDiagnosticResult: $('#deck-diagnostic-result'), onboardingOpen: $('#onboarding-open'), onboardingDialog: $('#onboarding-dialog'), onboardingClose: $('#onboarding-close'), onboardingPrev: $('#onboarding-prev'), onboardingNext: $('#onboarding-next'), onboardingStepLabel: $('#onboarding-step-label'), onboardingProgressBar: $('#onboarding-progress-bar'),
-  buttonDialog: $('#button-dialog'), buttonForm: $('#button-form'), buttonDialogTitle: $('#button-dialog-title'), btnKind: $('#btn-kind'), btnLabel: $('#btn-label'), btnIcon: $('#btn-icon'), btnColor: $('#btn-color'), btnSize: $('#btn-size'), btnActionType: $('#btn-action-type'), actionTypeLabel: $('#action-type-label'), actionSection: $('#action-section'), actionSectionTitle: $('#action-section-title'), actionFields: $('#action-fields'), deleteButton: $('#delete-button'), duplicateButton: $('#duplicate-button'), editorPreview: $('#editor-preview'), previewIcon: $('#preview-icon'), previewLabel: $('#preview-label'), previewSize: $('#preview-size'),
+  buttonDialog: $('#button-dialog'), buttonForm: $('#button-form'), buttonDialogTitle: $('#button-dialog-title'), btnKind: $('#btn-kind'), btnLabel: $('#btn-label'), btnIcon: $('#btn-icon'), btnAppIcon: $('#btn-app-icon'), btnColor: $('#btn-color'), btnSize: $('#btn-size'), btnActionType: $('#btn-action-type'), actionTypeLabel: $('#action-type-label'), actionSection: $('#action-section'), actionSectionTitle: $('#action-section-title'), actionFields: $('#action-fields'), deleteButton: $('#delete-button'), duplicateButton: $('#duplicate-button'), editorPreview: $('#editor-preview'), previewIcon: $('#preview-icon'), previewLabel: $('#preview-label'), previewSize: $('#preview-size'),
   clockTime: $('#clock-time'), clockDate: $('#clock-date'), toastRegion: $('#toast-region')
 };
 
@@ -41,6 +42,7 @@ let onboardingStep = 0;
 let lastDeckDiagnostic = null;
 
 hydrateStaticIcons();
+for (const [value, label] of APP_ICON_OPTIONS.slice(2)) { const option=document.createElement('option'); option.value=value; option.textContent=label; els.btnAppIcon?.append(option); }
 applyAppearance();
 updateClock();
 setInterval(updateClock, 20_000);
@@ -97,7 +99,7 @@ function buildDeckDiagnostic() {
   try { errors = JSON.parse(localStorage.getItem(ERROR_LOG_KEY) || '[]'); } catch {}
   add('Erros recentes', errors.length ? 'warn' : 'ok', errors.length ? `${errors.length} evento(s) registrado(s) neste iPad` : 'Nenhum erro de runtime registrado');
   return {
-    format:'nexus-deck-diagnostic', version:1, appVersion:'1.0.0', generatedAt:new Date().toISOString(),
+    format:'nexus-deck-diagnostic', version:1, appVersion:'1.1.0', generatedAt:new Date().toISOString(),
     localMode:Boolean(localConfig?.configured), localUrl:localConfig?.localUrl || null,
     activeDevice:device ? { name:device.name, platform:device.platform, transport:device.transport } : null,
     checks, errors:errors.slice(-10)
@@ -433,6 +435,8 @@ function subtitleFor(action) {
 }
 
 function buttonIconMarkup(button) {
+  const app = resolvedAppIcon(button);
+  if (app) return `<span class="app-icon" data-app-icon="${app.id}" title="${app.name}">${app.svg}</span>`;
   const semantic = semanticIcon(button);
   const svg = semantic ? iconSvg(semantic) : '';
   return svg ? `<span class="ui-icon">${svg}</span>` : `<span class="fallback-icon"></span>`;
@@ -445,6 +449,8 @@ function cardBase(button, index, tagName = 'article') {
   node.dataset.size = button.size || 'square';
   node.dataset.buttonId = button.id;
   node.dataset.kind = normalizeKind(button.kind);
+  const appIcon = resolvedAppIcon(button);
+  if (appIcon) node.dataset.appIcon = appIcon.id;
   node.style.setProperty('--button-color', button.color || '#6478ff');
   node.style.setProperty('--item-index', String(index));
   return node;
@@ -649,7 +655,11 @@ function renderDeviceDialog() {
 
 function updateEditorPreview() {
   els.editorPreview.style.setProperty('--preview-color', els.btnColor.value || '#6478ff');
-  els.previewIcon.textContent = els.btnIcon.value.trim() || '⌘';
+  const previewControl = { id:editingButtonId || '', label:els.btnLabel.value.trim(), icon:els.btnIcon.value.trim(), appIcon:els.btnAppIcon?.value || 'auto' };
+  const app = resolvedAppIcon(previewControl);
+  els.previewIcon.classList.toggle('has-app-icon', Boolean(app));
+  if (app) { els.previewIcon.innerHTML = `<span class="app-icon" data-app-icon="${app.id}">${app.svg}</span>`; els.previewIcon.title = app.name; }
+  else { els.previewIcon.textContent = els.btnIcon.value.trim() || '⌘'; els.previewIcon.removeAttribute('title'); }
   els.previewLabel.textContent = els.btnLabel.value.trim() || 'Novo item';
   const kind = normalizeKind(els.btnKind.value);
   els.previewSize.textContent = `${CONTROL_KIND_LABELS[kind]} · ${sizeLabels[els.btnSize.value] || '1 × 1'}`;
@@ -663,6 +673,7 @@ function openButtonEditor(id = null) {
   els.btnKind.value = normalizeKind(source.kind);
   els.btnLabel.value = button?.label || '';
   els.btnIcon.value = source.icon || '⌘';
+  if (els.btnAppIcon) els.btnAppIcon.value = source.appIcon || 'auto';
   els.btnColor.value = source.color || '#6478ff';
   els.btnSize.value = source.size || 'square';
   els.btnActionType.value = source.action?.type || 'open_url';
@@ -675,10 +686,11 @@ function openButtonEditor(id = null) {
 
 function editorKindPreset() {
   const kind = normalizeKind(els.btnKind.value);
-  const current = { id:editingButtonId || '', label:els.btnLabel.value.trim(), icon:els.btnIcon.value.trim(), color:els.btnColor.value, size:els.btnSize.value };
+  const current = { id:editingButtonId || '', label:els.btnLabel.value.trim(), icon:els.btnIcon.value.trim(), appIcon:els.btnAppIcon?.value || 'auto', color:els.btnColor.value, size:els.btnSize.value };
   const preset = applyKindPreset(current, kind);
   els.btnLabel.value = preset.label || '';
   els.btnIcon.value = preset.icon || '⌘';
+  if (els.btnAppIcon && !editingButtonId) els.btnAppIcon.value = preset.appIcon || 'auto';
   els.btnColor.value = preset.color || '#6478ff';
   els.btnSize.value = preset.size || 'square';
   if (preset.action) els.btnActionType.value = preset.action.type;
@@ -949,7 +961,7 @@ function actionFromForm() {
 function controlFromForm() {
   const kind = normalizeKind(els.btnKind.value);
   const record = {
-    id:editingButtonId || randomId(8), kind, label:els.btnLabel.value.trim(), icon:els.btnIcon.value.trim() || '⌘',
+    id:editingButtonId || randomId(8), kind, label:els.btnLabel.value.trim(), icon:els.btnIcon.value.trim() || '⌘', appIcon:els.btnAppIcon?.value || 'auto',
     color:els.btnColor.value, size:els.btnSize.value
   };
   if (kind === 'button' || kind === 'toggle') {
@@ -1208,6 +1220,7 @@ els.addButton.addEventListener('click', () => openButtonEditor());
 els.btnKind.addEventListener('change', editorKindPreset);
 els.btnActionType.addEventListener('change', () => renderActionFields({ action:null }));
 [els.btnLabel, els.btnIcon, els.btnColor, els.btnSize].forEach(input => input.addEventListener('input', updateEditorPreview));
+els.btnAppIcon?.addEventListener('change', updateEditorPreview);
 els.btnSize.addEventListener('change', updateEditorPreview);
 els.buttonForm.addEventListener('submit', event => {
   if (event.submitter?.value === 'cancel') return;
