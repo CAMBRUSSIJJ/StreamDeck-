@@ -1,32 +1,40 @@
-# Arquitetura Nexus Deck v0.2
+# Arquitetura Nexus Deck v0.5
 
 ```text
 GitHub monorepo
 ├── apps/deck       -> Vercel -> Safari/PWA no iPad
-├── apps/companion  -> GitHub Actions -> Windows .exe
+├── apps/companion  -> Windows .exe
 └── packages/protocol
 
-         iPad PWA
-            │
-            │ WSS / Broadcast cifrado
-            ▼
-    Supabase Realtime
-            ▲
-            │ WSS / Broadcast cifrado
-            │
-    Windows Companion
-            │
-            ├── abrir URL
-            ├── abrir .exe
-            ├── hotkeys
-            └── controles de mídia
+          Nexus Deck PWA
+      ┌────────┴────────┐
+      │                 │
+  UI/Widgets        Editor local
+      │                 │
+      └────────┬────────┘
+               │
+       protocolo de ações
+               │
+        ┌──────┴──────┐
+        │             │
+   Relay opcional   futuro modo local
+        │             │
+        └──────┬──────┘
+               │
+      Windows Companion
 ```
 
-## Princípios
+## Camadas
 
-- Cloud transport não recebe a chave privada do dispositivo.
+- **Interface:** botões, toggles, sliders, mídia, status e relógio.
+- **Estado local:** páginas, ordem, aparência, valores e preferências ficam no iPad.
+- **Protocolo:** apenas ações explicitamente permitidas são aceitas.
+- **Companion:** executa URL, aplicativo, hotkeys e comandos de mídia no Windows.
+- **Transporte:** Supabase continua opcional; a arquitetura foi mantida separada para permitir modo local-first posteriormente.
+
+## Segurança
+
 - Sem execução arbitrária de shell.
-- Sem dependências JavaScript de runtime no Deck.
+- Chaves de dispositivo não ficam expostas no HTML.
+- A camada visual funciona sem credenciais de nuvem.
 - Companion é binário único, compilável sem CGO.
-- Configuração do Companion fica fora do repositório no diretório de configuração do usuário.
-- Protocolo e criptografia independentes da UI para permitir futuro app iPadOS nativo.

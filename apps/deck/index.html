@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#0b0d10" />
+  <meta name="theme-color" content="#080a0f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Nexus Deck" />
@@ -13,61 +13,134 @@
   <link rel="stylesheet" href="/styles.css" />
   <title>Nexus Deck</title>
 </head>
-<body>
+<body data-accent="indigo">
+  <div class="ambient" aria-hidden="true"><span></span><span></span><span></span></div>
+
   <div id="app" class="app-shell">
     <header class="topbar">
-      <div class="brand-block">
-        <div class="brand-mark">N</div>
-        <div>
-          <div class="eyebrow">CONTROL CENTER</div>
-          <h1>Nexus Deck</h1>
+      <div class="brand-block" aria-label="Nexus Deck">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span></div>
+        <div class="brand-copy">
+          <strong>Nexus</strong>
+          <span>Deck</span>
         </div>
       </div>
+
+      <div class="topbar-center" aria-hidden="true">
+        <span id="clock-time">--:--</span>
+        <span class="topbar-divider"></span>
+        <span id="clock-date">---</span>
+      </div>
+
       <div class="topbar-actions">
-        <button id="device-pill" class="status-pill offline" type="button" aria-label="Gerenciar dispositivos">
+        <button id="device-pill" class="status-pill offline" type="button" aria-label="Gerenciar computadores">
           <span class="status-dot"></span>
-          <span id="device-name">Nenhum PC</span>
+          <span class="status-copy">
+            <strong id="device-name">Nenhum PC</strong>
+            <small id="device-status-text">Desconectado</small>
+          </span>
+          <span class="chevron" aria-hidden="true">⌄</span>
         </button>
-        <button id="edit-toggle" class="icon-button" type="button" aria-label="Editar deck">✎</button>
-        <button id="settings-open" class="icon-button" type="button" aria-label="Configurações">⚙</button>
+        <button id="settings-open" class="icon-button" type="button" aria-label="Configurações">
+          <span class="ui-icon" data-icon="settings"></span>
+        </button>
       </div>
     </header>
 
     <main class="workspace">
-      <section class="hero-row">
-        <div>
-          <div class="eyebrow">PERFIL ATIVO</div>
-          <div class="profile-title-row">
-            <h2 id="page-title">Principal</h2>
-            <span id="edit-badge" class="edit-badge hidden">EDITANDO</span>
+      <section class="workspace-head">
+        <div class="workspace-title">
+          <div class="section-kicker">DECK ATIVO</div>
+          <div class="title-line">
+            <h1 id="page-title">Principal</h1>
+            <span id="edit-badge" class="mode-badge hidden">EDITANDO</span>
           </div>
+          <p id="page-summary">Seus atalhos essenciais em um só lugar.</p>
         </div>
-        <button id="add-button" class="soft-button" type="button">＋ Adicionar botão</button>
+
+        <div class="workspace-actions">
+          <button id="edit-toggle" class="tool-button" type="button">
+            <span class="ui-icon" data-icon="edit"></span>
+            <span id="edit-toggle-label">Editar deck</span>
+          </button>
+          <button id="add-button" class="primary-button editing-only hidden" type="button">
+            <span class="ui-icon" data-icon="plus"></span>
+            Novo item
+          </button>
+        </div>
       </section>
 
-      <section id="deck-grid" class="deck-grid" aria-label="Botões do deck"></section>
+      <section id="edit-toolbar" class="edit-toolbar hidden" aria-live="polite">
+        <div class="edit-toolbar-icon"><span class="ui-icon" data-icon="sparkles"></span></div>
+        <div>
+          <strong>Modo de edição</strong>
+          <span>Toque em qualquer item para editar aparência, tamanho, tipo e comportamento.</span>
+        </div>
+        <span class="edit-toolbar-spacer"></span>
+        <button id="page-manage" class="toolbar-action" type="button"><span class="ui-icon" data-icon="layers"></span> Páginas</button>
+        <span class="edit-toolbar-hint">Arraste pelo ⋮ para reorganizar</span>
+      </section>
+
+      <section class="deck-stage">
+        <div id="deck-grid" class="deck-grid" aria-label="Controles do deck"></div>
+      </section>
     </main>
 
-    <nav id="page-dock" class="page-dock" aria-label="Perfis do deck"></nav>
+    <nav id="page-dock" class="page-dock" aria-label="Páginas do Nexus Deck"></nav>
   </div>
 
   <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
-  <dialog id="button-dialog" class="panel-dialog">
+  <dialog id="button-dialog" class="panel-dialog editor-dialog">
     <form method="dialog" id="button-form" class="dialog-content">
       <div class="dialog-header">
         <div>
-          <div class="eyebrow">BOTÃO</div>
-          <h3 id="button-dialog-title">Novo botão</h3>
+          <div class="section-kicker">CONTROLE</div>
+          <h2 id="button-dialog-title">Novo controle</h2>
+          <p>Personalize a aparência e escolha o que acontece ao tocar.</p>
         </div>
-        <button class="icon-button" value="cancel" aria-label="Fechar">×</button>
+        <button class="icon-button dialog-close" value="cancel" aria-label="Fechar">
+          <span class="ui-icon" data-icon="x"></span>
+        </button>
       </div>
 
-      <div class="form-grid">
-        <label>Nome<input id="btn-label" maxlength="28" required /></label>
-        <label>Ícone<input id="btn-icon" maxlength="4" placeholder="⌘" /></label>
-        <label>Cor<input id="btn-color" type="color" value="#2768ff" /></label>
-        <label>Ação
+      <div class="editor-preview-wrap">
+        <div id="editor-preview" class="editor-preview" style="--preview-color:#6478ff">
+          <span id="preview-icon" class="preview-icon">⌘</span>
+          <span class="preview-copy"><strong id="preview-label">Novo controle</strong><small id="preview-size">1 × 1</small></span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Aparência</div>
+        <div class="form-grid">
+          <label>Tipo de controle
+            <select id="btn-kind">
+              <option value="button">Botão de ação</option>
+              <option value="toggle">Toggle ON / OFF</option>
+              <option value="volume">Slider de volume</option>
+              <option value="media_panel">Central de mídia</option>
+              <option value="status">Status do PC</option>
+              <option value="clock">Relógio</option>
+            </select>
+          </label>
+          <label>Nome<input id="btn-label" maxlength="28" required placeholder="Ex.: Obsidian" /></label>
+          <label>Símbolo<input id="btn-icon" maxlength="4" placeholder="⌘" /></label>
+          <label>Cor<input id="btn-color" type="color" value="#6478ff" /></label>
+          <label>Tamanho
+            <select id="btn-size">
+              <option value="square">1 × 1 · Quadrado</option>
+              <option value="wide">2 × 1 · Largo</option>
+              <option value="tall">1 × 2 · Alto</option>
+              <option value="large">2 × 2 · Grande</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="action-section" class="form-section">
+        <div id="action-section-title" class="form-section-title">Ação</div>
+        <label id="action-type-label">Ação
           <select id="btn-action-type">
             <option value="open_url">Abrir URL</option>
             <option value="launch_app">Abrir aplicativo</option>
@@ -75,33 +148,63 @@
             <option value="media">Controle de mídia</option>
           </select>
         </label>
+        <div id="action-fields" class="action-fields"></div>
       </div>
-
-      <div id="action-fields" class="action-fields"></div>
 
       <div class="dialog-actions">
-        <button id="delete-button" class="danger-button hidden" type="button">Excluir</button>
+        <button id="delete-button" class="danger-button hidden" type="button">
+          <span class="ui-icon" data-icon="trash"></span> Excluir
+        </button>
+        <button id="duplicate-button" class="ghost-button hidden" type="button">
+          <span class="ui-icon" data-icon="copy"></span> Duplicar
+        </button>
         <span class="spacer"></span>
         <button class="ghost-button" value="cancel">Cancelar</button>
-        <button id="save-button" class="primary-button" value="default">Salvar</button>
+        <button id="save-button" class="primary-button" value="default">Salvar controle</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="page-dialog" class="panel-dialog wide-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <div class="section-kicker">ORGANIZAÇÃO</div>
+          <h2>Páginas do deck</h2>
+          <p>Crie áreas, renomeie, duplique e altere a ordem das páginas.</p>
+        </div>
+        <button id="page-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
+      </div>
+      <div id="page-list" class="page-manager-list"></div>
+      <div class="new-page-card">
+        <div>
+          <strong>Nova página</strong>
+          <span>Crie um espaço vazio para um novo contexto.</span>
+        </div>
+        <div class="new-page-row">
+          <input id="new-page-name" maxlength="24" placeholder="Ex.: Edição de vídeo" />
+          <button id="page-create" class="primary-button" type="button"><span class="ui-icon" data-icon="plus"></span> Criar</button>
+        </div>
+      </div>
+    </div>
   </dialog>
 
   <dialog id="device-dialog" class="panel-dialog wide-dialog">
     <div class="dialog-content">
       <div class="dialog-header">
         <div>
-          <div class="eyebrow">DISPOSITIVOS</div>
-          <h3>Computadores conectados</h3>
+          <div class="section-kicker">DISPOSITIVOS</div>
+          <h2>Computadores</h2>
+          <p>Selecione o PC que receberá os comandos deste iPad.</p>
         </div>
-        <button id="device-close" class="icon-button" aria-label="Fechar">×</button>
+        <button id="device-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
       </div>
       <div id="device-list" class="device-list"></div>
       <div class="pair-card">
-        <div>
+        <div class="pair-icon"><span class="ui-icon" data-icon="link"></span></div>
+        <div class="pair-copy">
           <strong>Parear novo computador</strong>
-          <p>Abra o Nexus Deck Companion no Windows, inicie o pareamento e informe o código exibido.</p>
+          <p>Abra o Nexus Deck Companion no Windows, gere um código e digite-o abaixo.</p>
         </div>
         <div class="pair-row">
           <input id="pair-code" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
@@ -116,23 +219,35 @@
     <div class="dialog-content">
       <div class="dialog-header">
         <div>
-          <div class="eyebrow">CONFIGURAÇÕES</div>
-          <h3>Nexus Deck</h3>
+          <div class="section-kicker">AJUSTES</div>
+          <h2>Nexus Deck</h2>
+          <p>Preferências visuais e estado da fundação.</p>
         </div>
-        <button id="settings-close" class="icon-button" aria-label="Fechar">×</button>
+        <button id="settings-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
       </div>
+
       <section class="settings-section">
-        <h4>Conexão</h4>
-        <div class="info-card">
-          <div><span>Cloud Relay</span><strong id="cloud-status">Verificando…</strong></div>
-          <div><span>Protocolo</span><strong>v1 / AES-256-GCM</strong></div>
-          <div><span>Versão</span><strong>0.2.0</strong></div>
+        <div class="settings-heading"><div><h3>Aparência</h3><p>Escolha a cor principal da interface.</p></div></div>
+        <div id="accent-picker" class="accent-picker" role="radiogroup" aria-label="Cor de destaque">
+          <button class="accent-swatch swatch-indigo" data-accent="indigo" type="button" aria-label="Índigo"></button>
+          <button class="accent-swatch swatch-cyan" data-accent="cyan" type="button" aria-label="Ciano"></button>
+          <button class="accent-swatch swatch-emerald" data-accent="emerald" type="button" aria-label="Esmeralda"></button>
+          <button class="accent-swatch swatch-rose" data-accent="rose" type="button" aria-label="Rosa"></button>
         </div>
       </section>
+
       <section class="settings-section">
-        <h4>Dados locais</h4>
-        <p>Perfis, botões e segredos dos dispositivos ficam armazenados neste iPad.</p>
-        <button id="reset-data" class="danger-button" type="button">Apagar dados deste iPad</button>
+        <div class="settings-heading"><div><h3>Fundação</h3><p>A nuvem continuará opcional até a etapa de integração.</p></div></div>
+        <div class="info-card">
+          <div><span>Cloud Relay</span><strong id="cloud-status">Verificando…</strong></div>
+          <div><span>Protocolo</span><strong>v1 · AES-256-GCM</strong></div>
+          <div><span>Interface</span><strong>V0.5.0 · Widgets Dinâmicos</strong></div>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <div class="settings-heading"><div><h3>Dados locais</h3><p>Perfis, controles e dispositivos ficam armazenados neste iPad.</p></div></div>
+        <button id="reset-data" class="danger-button" type="button"><span class="ui-icon" data-icon="trash"></span> Apagar dados deste iPad</button>
       </section>
     </div>
   </dialog>

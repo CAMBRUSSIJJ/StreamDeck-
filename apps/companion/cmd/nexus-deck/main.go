@@ -40,7 +40,7 @@ func main() {
 	}()
 
 	go func() {
-		fmt.Printf("Nexus Deck Companion v0.2.0\nPainel: http://%s\nConfig: %s\n", addr, s.Path())
+		fmt.Printf("Nexus Deck Companion v0.5.0\nPainel: http://%s\nConfig: %s\n", addr, s.Path())
 		if err := srv.Listen(addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal(err)
 		}
