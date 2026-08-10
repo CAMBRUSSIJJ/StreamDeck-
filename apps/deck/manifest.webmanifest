@@ -1,0 +1,16 @@
+{
+  "name": "Nexus Deck",
+  "short_name": "Nexus",
+  "description": "Painel de controle remoto para seu computador.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090b0f",
+  "theme_color": "#0b0d10",
+  "orientation": "any",
+  "icons": [
+    {"src":"/assets/icons/icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"/assets/icons/icon-512.png","sizes":"512x512","type":"image/png"},
+    {"src":"/assets/icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

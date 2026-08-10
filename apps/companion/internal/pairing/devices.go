@@ -1,0 +1,158 @@
+package pairing
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"runtime"
+	"sync"
+	"time"
+
+	"nexusdeck/companion/internal/actions"
+	ncrypto "nexusdeck/companion/internal/crypto"
+	"nexusdeck/companion/internal/protocol"
+	"nexusdeck/companion/internal/realtime"
+	"nexusdeck/companion/internal/store"
+)
+
+type DeviceManager struct {
+	store   *store.Store
+	ctx     context.Context
+	cancel  context.CancelFunc
+	mu      sync.Mutex
+	workers map[string]context.CancelFunc
+}
+
+func NewDeviceManager(s *store.Store) *DeviceManager {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &DeviceManager{store: s, ctx: ctx, cancel: cancel, workers: map[string]context.CancelFunc{}}
+}
+
+func (m *DeviceManager) Sync() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	cfg := m.store.Snapshot()
+	wanted := map[string]protocol.Device{}
+	for _, d := range cfg.Devices {
+		wanted[d.ID] = d
+	}
+	for id, cancel := range m.workers {
+		if _, ok := wanted[id]; !ok {
+			cancel()
+			delete(m.workers, id)
+		}
+	}
+	for id, d := range wanted {
+		if _, ok := m.workers[id]; ok {
+			continue
+		}
+		ctx, cancel := context.WithCancel(m.ctx)
+		m.workers[id] = cancel
+		go m.runDevice(ctx, d)
+	}
+}
+
+func (m *DeviceManager) Stop() { m.cancel() }
+
+func (m *DeviceManager) runDevice(ctx context.Context, device protocol.Device) {
+	key, err := ncrypto.DecodeSecret(device.Secret)
+	if err != nil {
+		return
+	}
+	backoff := time.Second
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		cfg := m.store.Snapshot()
+		if cfg.SupabaseURL == "" || cfg.SupabaseAnonKey == "" {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		session, err := realtime.DialChannel(ctx, realtime.Config{URL: cfg.SupabaseURL, AnonKey: cfg.SupabaseAnonKey}, "nexus-device-"+device.RoomID)
+		if err != nil {
+			select {
+			case <-time.After(backoff):
+			case <-ctx.Done():
+				return
+			}
+			if backoff < 15*time.Second {
+				backoff *= 2
+			}
+			continue
+		}
+		backoff = time.Second
+		done := make(chan struct{})
+		go m.statusLoop(ctx, done, session, device, key)
+		err = session.ReadBroadcast(ctx, func(raw json.RawMessage) { m.handleDeviceMessage(session, device, key, raw) })
+		close(done)
+		session.Close()
+		if err != nil {
+			select {
+			case <-time.After(backoff):
+			case <-ctx.Done():
+				return
+			}
+		}
+	}
+}
+
+func (m *DeviceManager) statusLoop(ctx context.Context, done <-chan struct{}, session *realtime.Session, device protocol.Device, key []byte) {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	send := func() {
+		host, _ := os.Hostname()
+		message := map[string]any{"type": "status", "id": mustRandom(10), "ts": time.Now().UnixMilli(), "body": map[string]any{
+			"online": true, "hostname": host, "platform": runtime.GOOS, "version": protocol.AppVersion,
+		}}
+		env, err := ncrypto.EncryptJSON(message, key, fmt.Sprintf("nexus:%s:v1", device.RoomID))
+		if err == nil {
+			_ = session.Broadcast(env)
+		}
+	}
+	send()
+	for {
+		select {
+		case <-ticker.C:
+			send()
+		case <-done:
+			return
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (m *DeviceManager) handleDeviceMessage(session *realtime.Session, device protocol.Device, key []byte, raw json.RawMessage) {
+	var env protocol.Envelope
+	if json.Unmarshal(raw, &env) != nil {
+		return
+	}
+	var msg struct {
+		Type string          `json:"type"`
+		ID   string          `json:"id"`
+		TS   int64           `json:"ts"`
+		Body json.RawMessage `json:"body"`
+	}
+	if ncrypto.DecryptJSON(env, key, fmt.Sprintf("nexus:%s:v1", device.RoomID), &msg) != nil || msg.Type != "command" {
+		return
+	}
+	body, err := actions.DecodeBody(msg.Body)
+	if err == nil {
+		err = actions.Execute(body.Action)
+	}
+	ackBody := map[string]any{"commandId": msg.ID, "ok": err == nil}
+	if err != nil {
+		ackBody["error"] = err.Error()
+	}
+	ack := map[string]any{"type": "ack", "id": mustRandom(10), "ts": time.Now().UnixMilli(), "body": ackBody}
+	ackEnv, encErr := ncrypto.EncryptJSON(ack, key, fmt.Sprintf("nexus:%s:v1", device.RoomID))
+	if encErr == nil {
+		_ = session.Broadcast(ackEnv)
+	}
+}
+
+func mustRandom(n int) string { s, _ := ncrypto.RandomB64(n); return s }

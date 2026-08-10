@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+dist/
+bin/
+apps/companion/nexus-deck
+apps/companion/nexus-deck.exe

@@ -1,0 +1,47 @@
+name: Nexus Deck CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: PWA checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run check
+
+  companion:
+    name: Companion tests + Windows build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Test
+        working-directory: apps/companion
+        run: go test ./...
+      - name: Build Windows x64
+        working-directory: apps/companion
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: '0'
+        run: |
+          mkdir -p ../../dist
+          go build -trimpath -ldflags="-s -w -H=windowsgui" -o ../../dist/NexusDeck-Companion.exe ./cmd/nexus-deck
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NexusDeck-Companion-Windows-x64
+          path: dist/NexusDeck-Companion.exe
+          if-no-files-found: error

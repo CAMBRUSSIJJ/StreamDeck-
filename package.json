@@ -1,0 +1,15 @@
+{
+  "name": "nexus-deck",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test apps/deck/tests/*.test.mjs",
+    "check:web": "node scripts/check-web.mjs",
+    "check": "npm run check:web && npm test",
+    "build:companion": "cd apps/companion && go build ./cmd/nexus-deck"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

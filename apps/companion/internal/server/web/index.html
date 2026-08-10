@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nexus Deck Companion</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand"><div class="mark">N</div><div><span>WINDOWS COMPANION</span><h1>Nexus Deck</h1></div></div>
+      <div id="state-pill" class="pill">Carregando…</div>
+    </header>
+
+    <section class="grid">
+      <article class="card hero">
+        <span class="eyebrow">PAREAMENTO</span>
+        <h2>Conecte seu iPad</h2>
+        <p>O código expira automaticamente e é usado apenas para negociar a chave criptográfica entre os dispositivos.</p>
+        <div id="pair-box" class="pair-box hidden">
+          <div id="pair-code" class="pair-code">000000</div>
+          <div id="pair-time" class="muted">Expira em 02:00</div>
+        </div>
+        <button id="pair-start" class="primary">Iniciar pareamento</button>
+      </article>
+
+      <article class="card">
+        <span class="eyebrow">CLOUD RELAY</span>
+        <h2>Supabase</h2>
+        <form id="settings-form">
+          <label>Project URL<input id="supabase-url" placeholder="https://xxxx.supabase.co" autocomplete="off" /></label>
+          <label>Anon / publishable key<textarea id="supabase-key" rows="4" placeholder="eyJ..." spellcheck="false"></textarea></label>
+          <button class="secondary" type="submit">Salvar configuração</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="card devices-card">
+      <div class="section-heading"><div><span class="eyebrow">DISPOSITIVOS</span><h2>iPads pareados</h2></div><button id="refresh" class="ghost">Atualizar</button></div>
+      <div id="devices" class="devices"></div>
+    </section>
+
+    <footer><span id="version">v0.2.0</span><span id="config-path"></span></footer>
+  </main>
+  <div id="toast" class="toast hidden"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
