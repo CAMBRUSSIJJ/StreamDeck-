@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPreset, LAYOUT_PRESETS, layoutFromPreset, normalizeLayout, normalizeSavedLayouts } from '../js/core/layout.js';
+import { applyPreset, LAYOUT_PRESETS, layoutFromPreset, normalizeLayout, normalizeSavedLayouts } from '../public/js/core/layout.js';
 
 test('layout padrão é Key Grid', () => {
   const layout = normalizeLayout();

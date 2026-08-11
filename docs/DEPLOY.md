@@ -1,41 +1,67 @@
-# Deploy, instalação e uso — Nexus Deck v1.1
+# Deploy e uso — Nexus Deck V1.8
 
-## Windows — caminho recomendado
+## 1. Publicar a interface no Vercel
 
-1. Execute `NexusDeck-Setup-v1.7.0.exe`.
-2. Confirme a instalação.
-3. O Companion será instalado em `%LOCALAPPDATA%\\Programs\\NexusDeck`.
-4. O Companion iniciará e abrirá `http://127.0.0.1:38473`.
-5. O startup com Windows fica ativado por padrão e pode ser desligado no painel.
-6. O ícone da bandeja permite reabrir o painel, abrir o Deck local ou encerrar.
+1. Envie a V1.8 para o repositório GitHub.
+2. No projeto Vercel, mantenha **Root Directory** como `apps/deck`.
+3. A V1.8 contém `package.json`, Vite 8, Nitro 3 e `vercel.json` dentro dessa pasta.
+4. O build é `npm run build`.
+5. Não configure Supabase.
+6. Depois do deploy, confirme que `https://SEU-DOMINIO/api/config` responde com `mode: nexus-relay` e uma `relayUrl` em `wss://`.
 
-Também existe um executável portátil do Companion para quem não quiser instalar.
+O Nexus Relay usa WebSockets do Vercel. O projeto precisa estar com Fluid Compute habilitado para essa capacidade.
 
-## Modo local sem Supabase
+## 2. Instalar o Nexus Windows Bridge
 
-1. No painel do Windows, copie o endereço LAN, por exemplo `http://192.168.1.20:38474`.
-2. No iPad conectado ao mesmo Wi‑Fi, abra esse endereço no Safari.
-3. Clique em **Gerar código local** no Windows.
-4. No iPad, toque no status do PC e informe o código de 6 dígitos.
-5. O status deve mudar para Online/Local.
+1. Execute `NexusDeck-Setup-v1.8.0.exe`.
+2. Abra o painel em `http://127.0.0.1:38473`.
+3. Em **URL do Nexus no Vercel**, informe exatamente o domínio publicado, por exemplo `https://nexus-exemplo.vercel.app`.
+4. Clique em **Salvar**.
+5. O Bridge passa a usar `wss://nexus-exemplo.vercel.app/api/relay` automaticamente.
 
-Na primeira execução, permita o Companion no Firewall apenas para **redes privadas**. Se o iPad não abrir a porta 38474, use **Saúde do Nexus → Executar diagnóstico** no painel do Windows.
+O startup com Windows pode permanecer ativado. O ícone da bandeja abre o painel ou o Nexus oficial.
 
-## Interface Vercel
+## 3. Parear o iPad
 
-1. Envie o repositório para o GitHub.
-2. Importe no Vercel.
-3. Defina **Root Directory** como `apps/deck`.
-4. Use **Framework Preset: Other**.
-5. Deixe Build Command e Output Directory sem override.
+1. Abra a URL do Vercel no iPad.
+2. Opcionalmente use **Compartilhar → Adicionar à Tela de Início**.
+3. No Windows Bridge, clique em **Gerar código**.
+4. No iPad, abra **Computadores → Parear novo computador**.
+5. Digite o código de 6 dígitos.
+6. Aguarde o PC aparecer como Online/Nexus Relay.
 
-## Transferir layout Vercel ↔ Local
+O primeiro pareamento precisa de internet porque o relay está no Vercel. Depois, o Bridge reconecta automaticamente enquanto a interface e o PC estiverem online.
 
-Em Ajustes, use **Exportar deck** e **Importar deck**. A V1.7 usa Backup V2 com verificação de integridade e preview da quantidade de páginas, controles, macros e perfis. Dispositivos pareados permanecem no iPad e não são substituídos.
+## 4. Atualizações de UI
 
-## Diagnóstico
+Para mudar layout, cores, teclas, editor, App Focus ou comportamento mobile:
 
-- Windows: painel `127.0.0.1:38473` → **Saúde do Nexus**.
-- iPad: Ajustes → Conectividade → **Diagnóstico rápido**.
+```text
+GitHub Desktop → Commit → Push origin → Vercel deploy
+```
 
-Ambos podem exportar relatórios sem incluir chaves ou senhas.
+Não reinstale o Windows Bridge por causa de uma alteração exclusivamente web.
+
+## 5. Quando instalar um novo Bridge
+
+Instale uma nova versão do Setup somente quando a release informar mudança em recursos nativos, por exemplo:
+
+- áudio/volume do Windows;
+- abertura de aplicações;
+- hotkeys;
+- foreground app;
+- OBS local;
+- protocolo/segurança;
+- novas capacidades do Windows.
+
+## 6. Porta LAN 38474
+
+A porta `38474` permanece como fallback local. Se você abrir `http://IP-DO-PC:38474/` e o Vercel estiver configurado, o Bridge redirecionará para a URL oficial do Nexus. As APIs `/api/local/*` continuam restritas a redes privadas.
+
+## 7. Diagnóstico
+
+- Windows: `http://127.0.0.1:38473` → **Saúde do Nexus**.
+- Web/PWA: Ajustes → Conectividade → diagnóstico.
+- Vercel: abra `/api/config` e confirme `configured: true` e `mode: nexus-relay`.
+
+Se o site abrir mas o Bridge não ficar Online, verifique primeiro o deploy do `/api/relay` e se Fluid Compute/WebSockets está habilitado no projeto Vercel.

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { companionIsFresh, connectionQuality, integrationRollup, mediaSummary, normalizeCompanionStatus } from '../js/core/companion-sync.js';
+import { companionIsFresh, connectionQuality, integrationRollup, mediaSummary, normalizeCompanionStatus } from '../public/js/core/companion-sync.js';
 
 test('normalizes audio and Spotify companion state', () => {
   const status = normalizeCompanionStatus({
-    online:true, hostname:'DESKTOP', version:'1.7.0',
+    online:true, hostname:'DESKTOP', version:'1.8.0',
     audio:{available:true, volumePercent:47.6, muted:true},
     integrations:{ spotify:{connected:true, configured:true, state:{playing:true, track:'Midnight City', artist:'M83', progressMs:1234}} }
   }, {latencyMs:8, seenAt:1000, transport:'local'});

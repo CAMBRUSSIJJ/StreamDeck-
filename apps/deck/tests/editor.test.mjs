@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { duplicateControl, duplicatePage, moveItemById, reorderById, uniquePageName } from '../js/core/editor.js';
+import { duplicateControl, duplicatePage, moveItemById, reorderById, uniquePageName } from '../public/js/core/editor.js';
 
 test('reorderById moves a control before the target', () => {
   const result = reorderById([{id:'a'},{id:'b'},{id:'c'}], 'c', 'a');

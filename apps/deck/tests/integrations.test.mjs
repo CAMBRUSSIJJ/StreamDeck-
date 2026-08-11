@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { integrationActionLabel, integrationServices, normalizeIntegrationAction, validateIntegrationAction } from '../js/core/integrations.js';
+import { integrationActionLabel, integrationServices, normalizeIntegrationAction, validateIntegrationAction } from '../public/js/core/integrations.js';
 
 test('catálogo inclui quatro integrações profissionais', () => {
   const ids = integrationServices().map(item => item.id);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { findMatchingPage, normalizeActiveApp, normalizeProfile, pageMatchesApp, profileAppsText } from '../js/core/profiles.js';
+import { findMatchingPage, normalizeActiveApp, normalizeProfile, pageMatchesApp, profileAppsText } from '../public/js/core/profiles.js';
 
 test('normalizeProfile cleans executable names and removes duplicates', () => {
   const profile = normalizeProfile({ enabled:true, apps:['C:\\Apps\\Obsidian.EXE', 'obsidian.exe', ' Code.exe '] });

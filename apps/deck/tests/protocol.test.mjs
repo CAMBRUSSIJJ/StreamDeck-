@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCommand, validateAction } from '../js/core/protocol.js';
+import { createCommand, validateAction } from '../public/js/core/protocol.js';
 
 test('supported actions validate', () => {
   assert.equal(validateAction({type:'open_url', url:'https://example.com'}), true);

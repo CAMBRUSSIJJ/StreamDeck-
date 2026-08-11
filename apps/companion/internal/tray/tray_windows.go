@@ -169,7 +169,7 @@ func start(adminURL, deckURL string, onExit func()) error {
 		}
 		icon, _, _ := procLoadIconW.Call(0, idiApplication)
 		trayData = notifyIconData{Size: uint32(unsafe.Sizeof(notifyIconData{})), HWnd: hwnd, UID: 1, Flags: nifMessage | nifIcon | nifTip, CallbackMessage: trayMessage, Icon: icon}
-		tip, _ := syscall.UTF16FromString("Nexus Deck Companion")
+		tip, _ := syscall.UTF16FromString("Nexus Windows Bridge")
 		copy(trayData.Tip[:], tip)
 		procShellNotifyIconW.Call(nimAdd, uintptr(unsafe.Pointer(&trayData)))
 		var m msg

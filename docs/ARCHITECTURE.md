@@ -1,83 +1,100 @@
-# Arquitetura Nexus Deck v1.1
+# Arquitetura — Nexus Deck V1.8
+
+## Fonte única de interface
+
+A V1.8 elimina a duplicação da UI entre Vercel e executável Windows.
 
 ```text
-                         ┌────────────────────┐
-                         │ Vercel · opcional  │
-                         │ preview / edição   │
-                         └─────────┬──────────┘
-                                   │ backup V2
-                                   ▼
-┌───────────────────┐       Wi‑Fi / LAN      ┌────────────────────────┐
-│ iPad / Safari     │ ◀────────────────────▶ │ Nexus Companion        │
-│ Deck local :38474 │                        │ Admin 127.0.0.1:38473 │
-└───────────────────┘                        └───────────┬────────────┘
-                                                       │
-                              ┌────────────────────────┼────────────────────┐
-                              ▼                        ▼                    ▼
-                         Windows APIs            Integrações          Perfis/estado
-                                             OBS / Spotify /       foreground app
-                                             Discord / Browser
+                         INTERNET
+                            │
+                            ▼
+                 ┌──────────────────────┐
+                 │       VERCEL         │
+                 │ Nexus Web / PWA      │
+                 │ /api/config          │
+                 │ /api/relay · WSS     │
+                 └──────────┬───────────┘
+                            │
+                         Nexus Relay
+                         WebSocket WSS
+                 ┌──────────┴───────────┐
+                 │                      │
+                 ▼                      ▼
+        ┌────────────────┐      ┌──────────────────────┐
+        │ iPad / PWA     │      │ Nexus Windows Bridge │
+        │ UI / editor    │      │ Go · Windows x64     │
+        │ App Focus      │      │ ações/estado local   │
+        └────────────────┘      └──────────┬───────────┘
+                                           │
+                                           ▼
+                                        Windows
 ```
 
-## Processo Windows
+`apps/deck` é a UI oficial. O Bridge não incorpora mais `apps/deck` em seu executável.
 
-A V1.7 usa uma única instância do Companion. Um segundo lançamento detecta o painel em `127.0.0.1:38473`, abre a instância existente e encerra o novo processo.
+## Nexus Relay
 
-No Windows, o Companion também cria um ícone de bandeja. O menu oferece:
+O relay fica em `/api/relay` e usa WebSocket. Os canais continuam seguindo o protocolo Nexus:
 
-- Abrir painel administrativo;
-- Abrir Nexus Deck local;
-- Sair do Companion.
+- pareamento: `nexus-pair-<6 dígitos>`;
+- dispositivo: `nexus-device-<room id aleatório>`;
+- frame de transporte: `{ type: "nexus", payload }`.
 
-A inicialização automática é registrada em `HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run` com o argumento `--background`, evitando abrir o navegador em cada login.
+O relay separa conexões por namespace/room e encaminha frames entre os peers da mesma room. O tráfego persistente de dispositivo é cifrado antes do relay com o segredo pareado; o relay não precisa conhecer a chave do dispositivo.
 
-## Serviços
+O cliente recebe `/api/config` da mesma origem e deriva o endpoint `wss://<host>/api/relay`, evitando configuração de Supabase na PWA.
 
-- `127.0.0.1:38473`: painel administrativo e APIs de configuração/diagnóstico.
-- `0.0.0.0:38474`: interface do Deck e API de controle; middleware rejeita IPs externos à rede privada/loopback/link-local.
+## Windows Bridge
 
-## Pareamento e transporte
+O processo Windows mantém:
 
-- código temporário de 6 dígitos;
-- segredo aleatório por dispositivo;
-- IDs e timestamps para proteção contra replay;
-- AES-256-GCM em contexto seguro;
-- fallback LAN autenticado por token para Safari sobre HTTP local.
+- `127.0.0.1:38473`: painel administrativo e configuração;
+- `0.0.0.0:38474`: fallback/API LAN privada;
+- ações do Windows;
+- estado do áudio;
+- aplicativo em primeiro plano;
+- macros locais;
+- integrações locais, incluindo OBS e adaptadores allowlisted;
+- workers WebSocket dos dispositivos pareados.
 
-## Ações e macros
+A raiz `http://<IP-LAN>:38474/` não entrega mais uma segunda cópia da UI. Quando `webAppUrl` está configurada, retorna um redirect temporário para a versão oficial no Vercel.
 
-Ações são tipadas e validadas. Não existe ação de shell genérica. Macros aceitam até 20 etapas, atrasos limitados e condições simples, reutilizando as mesmas ações allowlisted.
+## Sincronização de estado
 
-## Integrações
+O Bridge envia um snapshot aproximadamente a cada 3 segundos enquanto o canal está conectado. Um `ack` de comando também inclui um snapshot novo, reduzindo a latência visual após um toque.
 
-O `integrations.Manager` isola adaptadores:
+Snapshots podem incluir:
 
-```text
-Integration Manager
- ├─ OBS Adapter ───── obs-websocket 5.x
- ├─ Spotify Adapter ─ OAuth PKCE + Web API
- ├─ Discord Adapter ─ hotkeys configuráveis
- └─ Browser Adapter ─ hotkeys allowlisted
-```
+- online/hostname/versão;
+- transport e sequência de sincronização;
+- aplicativo em primeiro plano;
+- volume/mute do Windows;
+- estados sanitizados das integrações.
 
-## Diagnóstico V1.7
+## Pareamento
 
-O painel administrativo testa localmente:
+O Windows gera um código temporário de 6 dígitos. O browser cria identidade efêmera para o handshake; depois do pareamento o dispositivo recebe `roomId` e segredo aleatórios e persiste esses dados localmente. O Bridge armazena somente os dispositivos autorizados e seus segredos no diretório de configuração do usuário.
 
-- disponibilidade do painel;
-- permissão de escrita no diretório de configuração;
-- validade do endereço LAN;
-- disponibilidade TCP da porta `38474`;
-- presença de iPads autorizados;
-- estado da inicialização automática;
-- plataforma de execução.
+## Compatibilidade
 
-O relatório exportado é sanitizado e não inclui credenciais.
+A V1.8 remove o transporte Supabase do runtime. Em instalações atualizadas, campos antigos desconhecidos no `config.json` são simplesmente ignorados pelo loader. Ao salvar a URL oficial do Vercel, os workers são reiniciados e passam a usar exclusivamente o Nexus Relay; IDs e segredos dos dispositivos existentes continuam válidos.
 
-## Backup V2
+## Fallback LAN
 
-O backup portátil do iPad contém páginas, controles, macros, perfis e preferências visuais. A V2 inclui checksum para detectar arquivo incompleto/corrompido. Dispositivos, segredos e tokens continuam fora do backup.
+A API local em `38474` continua disponível somente para rede privada/loopback/link-local. Ela preserva o modo local existente em caso de necessidade de diagnóstico ou fallback. A UI principal, entretanto, deve ser aberta no domínio Vercel.
 
 ## Atualizações
 
-O Companion consulta a release mais recente de `CAMBRUSSIJJ/StreamDeck` pelo GitHub Releases apenas quando o usuário solicita. A V1.7 informa se há versão nova e abre a release; não substitui o executável silenciosamente.
+Mudanças de UI:
+
+```text
+GitHub → Push → Vercel → próximo reload da PWA
+```
+
+Mudanças nativas:
+
+```text
+Código Go/Windows → nova release do Windows Bridge → Setup
+```
+
+Essa separação impede que alterações de layout, CSS, App Focus ou mobile obriguem a recompilar o executável Windows.

@@ -1,0 +1,33 @@
+{
+  "name": "Nexus Deck",
+  "short_name": "Nexus",
+  "description": "Nexus Deck V1.8: interface oficial no Vercel, App Focus e controle do Windows pelo Nexus Windows Bridge.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07090d",
+  "theme_color": "#080a0f",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "display_override": [
+    "standalone",
+    "fullscreen"
+  ]
+}

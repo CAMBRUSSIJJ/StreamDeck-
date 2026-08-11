@@ -40,9 +40,14 @@ func (p *PairManager) Status() PairStatus { p.mu.RLock(); defer p.mu.RUnlock(); 
 
 func (p *PairManager) Start(parent context.Context) (PairStatus, error) {
 	cfg := p.store.Snapshot()
-	if cfg.SupabaseURL == "" || cfg.SupabaseAnonKey == "" {
-		return PairStatus{}, errors.New("configure Supabase first")
+	if cfg.WebAppURL == "" {
+		return PairStatus{}, errors.New("configure the Nexus Web URL first")
 	}
+	relayURL, relayErr := realtime.RelayURLForWebApp(cfg.WebAppURL)
+	if relayErr != nil {
+		return PairStatus{}, relayErr
+	}
+	relayCfg := realtime.Config{RelayURL: relayURL}
 	p.mu.Lock()
 	if p.cancel != nil {
 		p.cancel()
@@ -63,7 +68,7 @@ func (p *PairManager) Start(parent context.Context) (PairStatus, error) {
 	status := p.status
 	p.mu.Unlock()
 
-	session, err := realtime.DialChannel(ctx, realtime.Config{URL: cfg.SupabaseURL, AnonKey: cfg.SupabaseAnonKey}, "nexus-pair-"+code)
+	session, err := realtime.DialChannel(ctx, relayCfg, "nexus-pair-"+code)
 	if err != nil {
 		cancel()
 		p.clear(code)

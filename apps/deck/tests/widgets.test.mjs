@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clampVolume, defaultControlForKind, normalizeKind, toggleState, volumeKeySteps } from '../js/core/widgets.js';
+import { clampVolume, defaultControlForKind, normalizeKind, toggleState, volumeKeySteps } from '../public/js/core/widgets.js';
 
 test('normaliza tipos desconhecidos como botão', () => {
   assert.equal(normalizeKind('clock'), 'clock');

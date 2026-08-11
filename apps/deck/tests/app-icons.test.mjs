@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { APP_ICON_OPTIONS, appIconSvg, inferAppIcon, resolvedAppIcon } from '../js/ui/app-icons.js';
+import { APP_ICON_OPTIONS, appIconSvg, inferAppIcon, resolvedAppIcon } from '../public/js/ui/app-icons.js';
 
 test('biblioteca de ícones expõe aplicativos principais', () => {
   const values = new Set(APP_ICON_OPTIONS.map(([value]) => value));

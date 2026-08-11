@@ -1,14 +1,13 @@
 {
   "name": "nexus-deck",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test apps/deck/tests/*.test.mjs",
     "check:web": "node scripts/check-web.mjs",
     "check": "npm run check:web && npm test",
-    "build:companion": "cd apps/companion && go build ./cmd/nexus-deck",
-    "sync:local-deck": "node scripts/sync-local-deck.mjs"
+    "build:companion": "cd apps/companion && go build ./cmd/nexus-deck"
   },
   "engines": {
     "node": ">=22"

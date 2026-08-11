@@ -19,8 +19,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Sync local Deck
-        run: npm run sync:local-deck
+      - name: Install web dependencies
+        working-directory: apps/deck
+        run: npm install --no-audit --no-fund
+      - name: Validate Vercel Live UI + Nexus Relay
+        working-directory: apps/deck
+        run: npm run build
       - name: Test
         working-directory: apps/companion
         run: go test ./...

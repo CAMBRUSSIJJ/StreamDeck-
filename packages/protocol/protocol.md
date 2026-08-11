@@ -2,14 +2,7 @@
 
 ## Mensagens
 
-Mensagens lógicas usam `type`, `id`, `ts` e `body`. IDs/timestamps permitem confirmação e proteção contra replay no transporte local.
-
-Tipos principais:
-
-- `command`
-- `ack`
-- `status`
-- `ping`
+Mensagens lógicas usam `type`, `id`, `ts` e `body`. Tipos principais: `command`, `ack`, `status` e `ping`.
 
 ## Ações suportadas
 
@@ -18,40 +11,36 @@ Tipos principais:
 - `hotkey` `{ keys: ["CTRL", "SHIFT", "K"] }`
 - `media` `{ key: "play_pause" | "next" | "previous" | "volume_up" | "volume_down" | "volume_mute" }`
 - `system` `{ key: "lock" }`
-- `integration` `{ service, command, params? }` para adaptadores allowlisted do Companion
-- `macro` `{ stopOnError, steps[] }` com ações primitivas, atraso e condição por etapa
+- `integration` `{ service, command, params? }`
+- `macro` `{ stopOnError, steps[] }`
 
 Shell arbitrário não faz parte do protocolo.
 
-## Local Transport — V0.6
+## Nexus Relay — V1.8
 
-O Companion expõe o Deck e a API em `http://<IP-LAN>:38474`.
+O transporte principal usa WebSocket seguro no mesmo projeto da interface:
 
-Fluxo:
+- endpoint: `/api/relay`;
+- pairing room: `nexus-pair-<6 digits>`;
+- device room: `nexus-device-<room id>`;
+- frame: `{ "type": "nexus", "payload": ... }`.
 
-1. Companion gera código temporário de 6 dígitos.
-2. iPad solicita pareamento.
-3. Companion cria ID e segredo aleatório de dispositivo.
-4. O dispositivo é persistido no Windows.
-5. Comandos locais exigem autenticação do dispositivo e timestamp recente.
+`/api/config` informa ao browser a `relayUrl` da mesma origem. O Windows Bridge deriva o mesmo endpoint a partir da `webAppUrl` configurada no painel.
 
-Em contexto seguro, o transporte usa o envelope AES-256-GCM já utilizado pelo Nexus. Em HTTP LAN, a versão compatível usa token aleatório de 256 bits como credencial e restringe o servidor a redes privadas.
+O payload persistente do dispositivo continua sendo um `Envelope` cifrado AES-256-GCM. O relay não altera o envelope.
 
-## Cloud Relay — opcional
+## Status e ack
 
-O transporte Supabase anterior continua compatível:
+Status do Bridge pode incluir `activeApp`, `audio`, `integrations`, `transport`, `serverTime` e `syncSequence`. Um `ack` pode incluir `state` com um snapshot imediatamente posterior ao comando.
 
-- pairing: `realtime:nexus-pair-<6 digits>`
-- device: `realtime:nexus-device-<room id>`
-- evento broadcast: `nexus`
+## Local Transport — fallback
 
-## Perfis Inteligentes — V0.8
+O Windows Bridge mantém `/api/local/*` em `http://<IP-LAN>:38474` para compatibilidade/fallback. O acesso é restrito a endereços privados. Em contexto seguro pode ser usado envelope AES-GCM; o modo HTTP LAN compatível exige token aleatório do dispositivo e proteção contra replay.
 
-As mensagens `status` do Companion podem incluir `activeApp` com `processName`, `processPath`, `windowTitle` e `pid`. O Deck usa principalmente `processName` para escolher uma página associada ao aplicativo em primeiro plano. Essa informação é estado do Companion; não concede capacidade extra de execução ao navegador.
+## Migração
 
+O transporte Supabase das versões V1.7 e anteriores não faz parte do runtime V1.8. Campos legados são ignorados durante a leitura da configuração. O Windows Bridge V1.8 usa `webAppUrl` para derivar o Nexus Relay e pode reutilizar os registros de pareamento existentes.
 
-## Integrações Profissionais — V0.9
+## Integrações
 
-A ação `integration` não representa execução genérica. `service` e `command` são identificadores seguros e o Companion despacha apenas para adaptadores registrados (`obs`, `spotify`, `discord`, `browser`). `params` é um objeto JSON limitado em tamanho e cada adaptador valida os parâmetros exigidos.
-
-Status do Companion pode incluir `integrations`, com estado sanitizado de conexão/configuração e informações operacionais. Segredos, senhas e tokens OAuth não são enviados ao Deck.
+A ação `integration` não representa execução genérica. `service` e `command` são identificadores seguros e o Bridge despacha somente para adaptadores registrados. Segredos, senhas e tokens OAuth não são enviados ao deck.

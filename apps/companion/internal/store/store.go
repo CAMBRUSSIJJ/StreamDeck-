@@ -36,11 +36,10 @@ type IntegrationsConfig struct {
 }
 
 type Config struct {
-	SupabaseURL     string                 `json:"supabaseUrl"`
-	SupabaseAnonKey string                 `json:"supabaseAnonKey"`
-	Devices         []protocol.Device      `json:"devices"`
-	LocalDevices    []protocol.LocalDevice `json:"localDevices,omitempty"`
-	Integrations    IntegrationsConfig     `json:"integrations"`
+	WebAppURL    string                 `json:"webAppUrl,omitempty"`
+	Devices      []protocol.Device      `json:"devices"`
+	LocalDevices []protocol.LocalDevice `json:"localDevices,omitempty"`
+	Integrations IntegrationsConfig     `json:"integrations"`
 }
 
 type Store struct {
@@ -97,11 +96,10 @@ func (s *Store) Snapshot() Config {
 	return out
 }
 
-func (s *Store) SetCloud(url, anonKey string) error {
+func (s *Store) SetWebAppURL(url string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.cfg.SupabaseURL = url
-	s.cfg.SupabaseAnonKey = anonKey
+	s.cfg.WebAppURL = url
 	return s.saveLocked()
 }
 

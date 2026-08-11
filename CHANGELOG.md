@@ -1,6 +1,22 @@
 # Changelog
 
 
+## 1.8.0 — Vercel Live UI + Windows Bridge
+
+- Vercel passa a ser a fonte única da interface Nexus; o Windows não incorpora mais uma segunda cópia do Deck.
+- Companion passa a atuar conceitualmente como **Nexus Windows Bridge**, dedicado a capacidades nativas do Windows.
+- Novo Nexus Relay em WebSocket seguro no próprio projeto Vercel, sem exigir Supabase em novas instalações.
+- Vite 8 + Nitro 3 adicionam `/api/config` e `/api/relay` ao projeto `apps/deck`.
+- Windows Bridge recebe uma única configuração: URL HTTPS oficial do Nexus no Vercel.
+- Pareamento cloud por código de 6 dígitos reutiliza o protocolo cifrado existente sobre o Nexus Relay.
+- Workers de dispositivos são reiniciados automaticamente quando a URL oficial é alterada.
+- Estado cloud agora inclui áudio real, app em primeiro plano, integrações, sequência e timestamps; ACKs retornam snapshot imediato.
+- Status cloud passa a atualizar aproximadamente a cada 3 segundos enquanto conectado.
+- `http://<IP-LAN>:38474/` deixa de servir UI embarcada e redireciona para a URL oficial; APIs LAN continuam disponíveis como fallback privado.
+- Removida a etapa de sincronizar/copiar `apps/deck` para dentro do executável.
+- O runtime V1.8 não depende mais de Supabase. Campos antigos eventualmente presentes no `config.json` são ignorados; dispositivos já pareados continuam reutilizando seus IDs e segredos ao migrar para o Nexus Relay.
+- Atualizações exclusivamente visuais/web passam a exigir apenas GitHub → Vercel, sem reinstalar o Windows Bridge.
+
 ## 1.7.0 — App Focus
 
 - Nova ação local **App Focus** no editor de teclas.

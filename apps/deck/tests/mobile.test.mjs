@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { columnsForViewport, normalizeMobilePreferences, orientationForViewport, pageIdByDelta, qualifiesAsSwipe } from '../js/core/mobile.js';
+import { columnsForViewport, normalizeMobilePreferences, orientationForViewport, pageIdByDelta, qualifiesAsSwipe } from '../public/js/core/mobile.js';
 
 test('normaliza preferências mobile e limita colunas', () => {
   const value = normalizeMobilePreferences({ scale:'huge', portraitColumns:9, landscapeColumns:2, locked:1 });

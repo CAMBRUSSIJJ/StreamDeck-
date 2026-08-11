@@ -17,7 +17,7 @@ import (
 //go:embed payload/*
 var payloadFS embed.FS
 
-const version = "1.7.0"
+const version = "1.8.0"
 const product = "Nexus Deck"
 const runKey = `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
 const uninstallKey = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\NexusDeck`
@@ -43,7 +43,7 @@ func main() {
 }
 
 func install() {
-	if messageBox("Instalar o Nexus Deck V1.7 neste computador?\n\nO Companion será instalado para o usuário atual e iniciará automaticamente com o Windows.", "Nexus Deck Setup", mbYesNo|mbIconQuestion) != idYes {
+	if messageBox("Instalar o Nexus Deck V1.8 neste computador?\n\nO Windows Bridge será instalado para o usuário atual e iniciará automaticamente com o Windows.", "Nexus Deck Setup", mbYesNo|mbIconQuestion) != idYes {
 		return
 	}
 
@@ -63,10 +63,10 @@ func install() {
 	}
 	payload, err := payloadFS.ReadFile("payload/NexusDeck-Companion.exe")
 	if err != nil {
-		fatal("Payload do Companion ausente: " + err.Error())
+		fatal("Payload do Windows Bridge ausente: " + err.Error())
 	}
 	if err := writeAtomic(companionPath, payload, 0o755); err != nil {
-		fatal("Falha ao instalar Companion: " + err.Error())
+		fatal("Falha ao instalar Windows Bridge: " + err.Error())
 	}
 
 	current, err := os.Executable()
@@ -95,11 +95,11 @@ func install() {
 	_ = os.WriteFile(filepath.Join(installDir, "VERSION"), []byte(version+"\r\n"), 0o644)
 
 	_ = exec.Command(companionPath).Start()
-	messageBox("Nexus Deck foi instalado com sucesso.\n\nO painel do Companion será aberto agora. Depois disso, ele poderá permanecer na bandeja do Windows.", "Nexus Deck", mbOK|mbIconInfo)
+	messageBox("Nexus Deck foi instalado com sucesso.\n\nO painel do Windows Bridge será aberto agora. Depois disso, ele poderá permanecer na bandeja do Windows.", "Nexus Deck", mbOK|mbIconInfo)
 }
 
 func uninstall() {
-	if messageBox("Remover o Nexus Deck deste computador?\n\nSeus layouts ficam no iPad. Você poderá escolher manter ou apagar as configurações locais do Companion.", "Desinstalar Nexus Deck", mbYesNo|mbIconQuestion) != idYes {
+	if messageBox("Remover o Nexus Deck deste computador?\n\nSeus layouts ficam no iPad. Você poderá escolher manter ou apagar as configurações locais do Windows Bridge.", "Desinstalar Nexus Deck", mbYesNo|mbIconQuestion) != idYes {
 		return
 	}
 	_ = exec.Command("taskkill.exe", "/IM", "NexusDeck-Companion.exe", "/F").Run()
@@ -107,7 +107,7 @@ func uninstall() {
 	_ = exec.Command("reg.exe", "delete", uninstallKey, "/f").Run()
 	_ = removeStartMenuShortcut()
 
-	keep := messageBox("Deseja MANTER as configurações do Companion e os iPads autorizados para uma futura reinstalação?\n\nSim = manter\nNão = apagar também as configurações", "Dados do Nexus Deck", mbYesNo|mbIconQuestion) == idYes
+	keep := messageBox("Deseja MANTER as configurações do Windows Bridge e os iPads autorizados para uma futura reinstalação?\n\nSim = manter\nNão = apagar também as configurações", "Dados do Nexus Deck", mbYesNo|mbIconQuestion) == idYes
 	if !keep {
 		if configDir, err := os.UserConfigDir(); err == nil {
 			_ = os.RemoveAll(filepath.Join(configDir, "NexusDeck"))
@@ -135,7 +135,7 @@ func createStartMenuShortcut(target string) error {
 		return err
 	}
 	link := filepath.Join(dir, "Nexus Deck.lnk")
-	script := fmt.Sprintf(`$w=New-Object -ComObject WScript.Shell;$s=$w.CreateShortcut('%s');$s.TargetPath='%s';$s.WorkingDirectory='%s';$s.Description='Nexus Deck Companion';$s.Save()`, ps(targetString(link)), ps(targetString(target)), ps(targetString(filepath.Dir(target))))
+	script := fmt.Sprintf(`$w=New-Object -ComObject WScript.Shell;$s=$w.CreateShortcut('%s');$s.TargetPath='%s';$s.WorkingDirectory='%s';$s.Description='Nexus Windows Bridge';$s.Save()`, ps(targetString(link)), ps(targetString(target)), ps(targetString(filepath.Dir(target))))
 	cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script)
 	if err := cmd.Run(); err == nil {
 		return nil

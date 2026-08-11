@@ -1,7 +1,7 @@
 package protocol
 
 const Version = 1
-const AppVersion = "1.7.0"
+const AppVersion = "1.8.0"
 
 type Envelope struct {
 	V          int    `json:"v"`

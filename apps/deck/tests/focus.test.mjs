@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { focusActionLabel, focusServices, formatMediaTime, nextRepeatMode, normalizeFocusAction, normalizeSpotifyFocus, progressPercent } from '../js/core/focus.js';
+import { focusActionLabel, focusServices, formatMediaTime, nextRepeatMode, normalizeFocusAction, normalizeSpotifyFocus, progressPercent } from '../public/js/core/focus.js';
 
-test('Spotify é o App Focus pronto na V1.7', () => {
+test('Spotify continua disponível no App Focus V1.8', () => {
   assert.deepEqual(focusServices().map(item => item.id), ['spotify']);
   assert.equal(normalizeFocusAction({type:'focus',service:'x'}).service, 'spotify');
   assert.match(focusActionLabel({type:'focus',service:'spotify'}), /Spotify Focus/);

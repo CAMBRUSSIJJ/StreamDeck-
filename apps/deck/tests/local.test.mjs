@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPing, localAAD } from '../js/core/local.js';
+import { createPing, localAAD } from '../public/js/core/local.js';
 
 test('localAAD is device scoped', () => {
   assert.equal(localAAD('abc123'), 'nexus-local:abc123:v1');

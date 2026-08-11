@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 if (!globalThis.btoa) globalThis.btoa = s => Buffer.from(s, 'binary').toString('base64');
 if (!globalThis.atob) globalThis.atob = s => Buffer.from(s, 'base64').toString('binary');
 
-const cryptoModule = await import('../js/core/crypto.js');
+const cryptoModule = await import('../public/js/core/crypto.js');
 const { createPairingIdentity, derivePairKey, encryptJson, decryptJson, bytesToBase64Url, randomBytes } = cryptoModule;
 
 test('AES-GCM round trip preserves payload', async () => {

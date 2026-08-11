@@ -32,7 +32,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	background := hasArg("--background")
 
-	// V1.3 is single-instance. A second launch opens the existing dashboard
+	// V1.8 Windows Bridge is single-instance. A second launch opens the existing dashboard
 	// instead of failing with an opaque port error.
 	if portOpen(adminAddr) {
 		if !background && os.Getenv("NEXUS_NO_BROWSER") == "" {
@@ -66,7 +66,7 @@ func main() {
 
 	serverErrors := make(chan error, 2)
 	go func() {
-		fmt.Printf("Nexus Deck Companion v%s\nPainel: http://%s\nDeck local: %s\nConfig: %s\n", protocol.AppVersion, adminAddr, localURL, s.Path())
+		fmt.Printf("Nexus Windows Bridge v%s\nPainel: http://%s\nFallback LAN: %s\nConfig: %s\n", protocol.AppVersion, adminAddr, localURL, s.Path())
 		if err := admin.Listen(adminAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErrors <- fmt.Errorf("painel administrativo: %w", err)
 		}
@@ -91,7 +91,7 @@ func main() {
 	case <-stop:
 	case <-exitRequested:
 	case err := <-serverErrors:
-		log.Printf("Nexus Companion: %v", err)
+		log.Printf("Nexus Windows Bridge: %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

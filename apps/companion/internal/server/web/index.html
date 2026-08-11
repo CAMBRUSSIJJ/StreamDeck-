@@ -3,73 +3,72 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nexus Deck Companion</title>
+  <title>Nexus Windows Bridge</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <main class="shell">
     <header>
-      <div class="brand"><div class="mark">N</div><div><span>WINDOWS COMPANION</span><h1>Nexus Deck</h1></div></div>
+      <div class="brand"><div class="mark">N</div><div><span>WINDOWS BRIDGE</span><h1>Nexus Deck</h1></div></div>
       <div id="state-pill" class="pill">Carregando…</div>
     </header>
 
     <section class="grid">
       <article class="card hero local-hero">
-        <span class="eyebrow">NEXUS LOCAL</span>
-        <h2>Controle pela sua rede Wi‑Fi</h2>
-        <p>O iPad fala diretamente com este computador. Supabase não é necessário para o modo local.</p>
+        <span class="eyebrow">NEXUS WINDOWS BRIDGE</span>
+        <h2>Interface no Vercel. Windows aqui.</h2>
+        <p>O Bridge não carrega mais uma cópia do layout. Ele executa somente recursos do Windows e se conecta à interface oficial publicada no Vercel.</p>
+        <form id="settings-form">
+          <label>URL do Nexus no Vercel<input id="web-app-url" placeholder="https://seu-nexus.vercel.app" autocomplete="off" /></label>
+          <button class="primary" type="submit">Salvar Nexus Web</button>
+        </form>
         <div class="local-url-wrap">
-          <span>Abra este endereço no Safari do iPad</span>
-          <div class="local-url-row"><code id="local-url">—</code><button id="copy-url" class="ghost compact" type="button">Copiar</button></div>
+          <span>Interface oficial</span>
+          <div class="local-url-row"><code id="nexus-web-url">Não configurada</code><button id="open-web" class="ghost compact" type="button">Abrir</button></div>
         </div>
+      </article>
+
+      <article class="card">
+        <span class="eyebrow">PAREAMENTO CLOUD</span>
+        <h2>Conectar iPad ao Windows</h2>
+        <p>Gere o código aqui e digite no Nexus aberto pelo Vercel. O tráfego do controle é criptografado ponta a ponta; o Vercel funciona como relay.</p>
         <div id="pair-box" class="pair-box hidden">
           <div id="pair-code" class="pair-code">000000</div>
           <div id="pair-time" class="muted">Expira em 02:00</div>
         </div>
-        <button id="pair-start" class="primary">Gerar código local</button>
-        <div class="network-note">Na primeira execução, o Windows pode pedir permissão de Firewall. Permita apenas em <strong>redes privadas</strong>.</div>
-      </article>
-
-      <article class="card">
-        <span class="eyebrow">CLOUD RELAY · OPCIONAL</span>
-        <h2>Supabase</h2>
-        <p>Use apenas se quiser manter o modo Cloud no futuro. O Nexus Local funciona sem esta configuração.</p>
-        <form id="settings-form">
-          <label>Project URL<input id="supabase-url" placeholder="https://xxxx.supabase.co" autocomplete="off" /></label>
-          <label>Anon / publishable key<textarea id="supabase-key" rows="4" placeholder="sb_publishable_..." spellcheck="false"></textarea></label>
-          <button class="secondary" type="submit">Salvar Cloud Relay</button>
-        </form>
+        <button id="pair-start" class="secondary">Gerar código de pareamento</button>
+        <div class="network-note">Depois do primeiro pareamento, o Bridge reconecta automaticamente. Nenhum serviço externo adicional precisa ser configurado no Bridge.</div>
       </article>
     </section>
 
     <section class="product-section">
-      <div class="section-heading product-heading"><div><span class="eyebrow">V1.7 · PRONTO PARA USO</span><h2>Primeiros passos</h2><p>O Companion agora pode iniciar com o Windows, permanecer na bandeja e diagnosticar a conexão local.</p></div><span id="setup-progress" class="integration-summary">Verificando…</span></div>
+      <div class="section-heading product-heading"><div><span class="eyebrow">V1.8 · BRIDGE ARCHITECTURE</span><h2>Primeiros passos</h2><p>O Windows Bridge inicia com o sistema, conecta ao Nexus Web e mantém as integrações locais disponíveis.</p></div><span id="setup-progress" class="integration-summary">Verificando…</span></div>
       <div class="setup-grid">
-        <article class="card setup-card"><span class="setup-index">01</span><div><strong>Companion ativo</strong><small id="setup-companion">Verificando…</small></div></article>
-        <article class="card setup-card"><span class="setup-index">02</span><div><strong>Abra o Nexus no iPad</strong><small id="setup-url">Aguardando endereço local…</small></div></article>
-        <article class="card setup-card"><span class="setup-index">03</span><div><strong>Pareie o iPad</strong><small id="setup-pair">Nenhum iPad autorizado</small></div></article>
+        <article class="card setup-card"><span class="setup-index">01</span><div><strong>Bridge ativo</strong><small id="setup-companion">Verificando…</small></div></article>
+        <article class="card setup-card"><span class="setup-index">02</span><div><strong>Abra o Nexus Web</strong><small id="setup-url">Configure a URL do Vercel…</small></div></article>
+        <article class="card setup-card"><span class="setup-index">03</span><div><strong>Pareie o Nexus Web</strong><small id="setup-pair">Nenhum dispositivo Cloud autorizado</small></div></article>
         <article class="card setup-card"><span class="setup-index">04</span><div><strong>Deixe automático</strong><small id="setup-startup">Inicialização automática desativada</small></div></article>
       </div>
     </section>
 
     <section class="system-grid">
       <article class="card system-card">
-        <div class="system-head"><div><span class="eyebrow">WINDOWS</span><h2>Inicialização e bandeja</h2></div><span class="system-badge">V1.7</span></div>
-        <p>Fechar o painel não encerra o Companion. Ele continua disponível pela bandeja do Windows.</p>
-        <label class="switch-row"><input id="startup-toggle" type="checkbox" /><span class="switch-track"><span></span></span><div><strong>Iniciar com o Windows</strong><small>Executa em segundo plano e mantém o iPad disponível.</small></div></label>
-        <div class="system-note">Na bandeja: duplo clique abre o painel; botão direito abre painel, Deck local ou encerra o Companion.</div>
+        <div class="system-head"><div><span class="eyebrow">WINDOWS</span><h2>Inicialização e bandeja</h2></div><span class="system-badge">V1.8</span></div>
+        <p>Fechar o painel não encerra o Bridge. Ele continua disponível pela bandeja do Windows.</p>
+        <label class="switch-row"><input id="startup-toggle" type="checkbox" /><span class="switch-track"><span></span></span><div><strong>Iniciar com o Windows</strong><small>Executa em segundo plano e mantém o Nexus conectado ao Windows.</small></div></label>
+        <div class="system-note">Na bandeja: duplo clique abre o painel; botão direito abre painel, Nexus Web ou encerra o Bridge.</div>
       </article>
 
       <article class="card system-card">
-        <div class="system-head"><div><span class="eyebrow">ATUALIZAÇÕES</span><h2>Nexus Companion</h2></div><span id="update-state" class="system-badge muted-badge">Manual</span></div>
+        <div class="system-head"><div><span class="eyebrow">ATUALIZAÇÕES</span><h2>Nexus Windows Bridge</h2></div><span id="update-state" class="system-badge muted-badge">Manual</span></div>
         <p>Verifique a release publicada no GitHub sem alterar seus dados locais.</p>
-        <div id="update-detail" class="update-detail">Versão instalada: <strong id="installed-version">—</strong></div>
+        <div id="update-detail" class="update-detail">Versão do Bridge: <strong id="installed-version">—</strong></div>
         <div class="button-row"><button id="update-check" class="secondary" type="button">Verificar atualização</button><button id="update-open" class="ghost hidden" type="button">Abrir release</button></div>
       </article>
     </section>
 
     <section class="card diagnostics-card">
-      <div class="section-heading"><div><span class="eyebrow">DIAGNÓSTICO</span><h2>Saúde do Nexus</h2><p>Testa configuração, porta local, pareamento e inicialização. O relatório não inclui chaves, tokens ou senhas.</p></div><div class="button-row diagnostics-actions"><button id="diagnostics-run" class="secondary" type="button">Executar diagnóstico</button><button id="diagnostics-export" class="ghost" type="button">Exportar relatório</button></div></div>
+      <div class="section-heading"><div><span class="eyebrow">DIAGNÓSTICO</span><h2>Saúde do Nexus</h2><p>Testa configuração, Nexus Web, ponte local, pareamento e inicialização. O relatório não inclui chaves, tokens ou senhas.</p></div><div class="button-row diagnostics-actions"><button id="diagnostics-run" class="secondary" type="button">Executar diagnóstico</button><button id="diagnostics-export" class="ghost" type="button">Exportar relatório</button></div></div>
       <div id="diagnostics-summary" class="diagnostics-summary">Ainda não executado.</div>
       <div id="diagnostics-list" class="diagnostics-list"></div>
     </section>
@@ -117,16 +116,16 @@
     </section>
 
     <section class="card devices-card">
-      <div class="section-heading"><div><span class="eyebrow">DISPOSITIVOS LOCAIS</span><h2>iPads autorizados</h2></div><button id="refresh" class="ghost">Atualizar</button></div>
+      <div class="section-heading"><div><span class="eyebrow">FALLBACK LOCAL</span><h2>Dispositivos locais legados</h2></div><button id="refresh" class="ghost">Atualizar</button></div>
       <div id="local-devices" class="devices"></div>
     </section>
 
     <section class="card devices-card cloud-devices-card">
-      <div class="section-heading"><div><span class="eyebrow">CLOUD · LEGADO/OPCIONAL</span><h2>Dispositivos via relay</h2></div></div>
+      <div class="section-heading"><div><span class="eyebrow">NEXUS WEB</span><h2>Dispositivos pareados ao Bridge</h2></div></div>
       <div id="devices" class="devices"></div>
     </section>
 
-    <footer><span id="version">v1.7.0</span><span id="config-path"></span></footer>
+    <footer><span id="version">v1.8.0</span><span id="config-path"></span></footer>
   </main>
   <div id="toast" class="toast hidden"></div>
   <script src="/app.js" defer></script>

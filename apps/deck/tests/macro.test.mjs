@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCommand, macroDurationHint, normalizeMacro, validateAction } from '../js/core/protocol.js';
+import { createCommand, macroDurationHint, normalizeMacro, validateAction } from '../public/js/core/protocol.js';
 
 const sample = {
   type:'macro',

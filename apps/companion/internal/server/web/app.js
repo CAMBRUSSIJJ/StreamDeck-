@@ -90,13 +90,14 @@ function renderIntegrations(status) {
 
 
 function renderSetup(status) {
-  const paired = (status.localDevices || []).length > 0;
+  const webReady = Boolean(status.webAppUrl);
+  const paired = (status.devices || []).length > 0;
   const startupOn = Boolean(status.startupEnabled);
-  $('#setup-companion').textContent = `Ativo · v${status.version}`;
-  $('#setup-url').textContent = status.localUrl || 'Endereço local indisponível';
-  $('#setup-pair').textContent = paired ? `${status.localDevices.length} iPad(s) autorizado(s)` : 'Nenhum iPad autorizado';
+  $('#setup-companion').textContent = `Bridge ativo · v${status.version}`;
+  $('#setup-url').textContent = webReady ? status.webAppUrl : 'Configure a URL HTTPS do Vercel';
+  $('#setup-pair').textContent = paired ? `${status.devices.length} dispositivo(s) pareado(s)` : 'Nenhum Nexus Web pareado';
   $('#setup-startup').textContent = startupOn ? 'Inicia automaticamente com o Windows' : 'Inicialização automática desativada';
-  const completed = 2 + Number(paired) + Number(startupOn);
+  const completed = 1 + Number(webReady) + Number(paired) + Number(startupOn);
   $('#setup-progress').textContent = `${completed}/4 concluídos`;
   $('#startup-toggle').checked = startupOn;
   $('#installed-version').textContent = `v${status.version}`;
@@ -117,7 +118,7 @@ function renderDiagnostics(data) {
   el.classList.remove('good','warning','bad');
   if (summary.error) { el.classList.add('bad'); el.textContent = `${summary.error} erro(s), ${summary.warn} aviso(s) e ${summary.ok} teste(s) OK.`; }
   else if (summary.warn) { el.classList.add('warning'); el.textContent = `${summary.ok} teste(s) OK e ${summary.warn} aviso(s). O Nexus pode funcionar, mas há itens para revisar.`; }
-  else { el.classList.add('good'); el.textContent = `${summary.ok} teste(s) aprovados. Fundação local saudável.`; }
+  else { el.classList.add('good'); el.textContent = `${summary.ok} teste(s) aprovados. Bridge e Nexus Web saudáveis.`; }
 }
 
 async function runDiagnostics(showToast = true) {
@@ -146,19 +147,19 @@ function downloadJSON(filename, payload) {
 async function load() {
   try {
     const status = await api('/api/status');
-    $('#state-pill').textContent = 'Nexus Local ativo';
+    $('#state-pill').textContent = status.webAppUrl ? 'Windows Bridge conectado' : 'Configure o Nexus Web';
     $('#state-pill').classList.add('online');
-    $('#supabase-url').value = status.supabaseUrl || '';
+    $('#web-app-url').value = status.webAppUrl || '';
     $('#version').textContent = 'v' + status.version;
     $('#config-path').textContent = status.configPath || '';
-    $('#local-url').textContent = status.localUrl || 'Indisponível';
-    const pair = status.localPair || {};
+    $('#nexus-web-url').textContent = status.webAppUrl || 'Não configurada';
+    const pair = status.pair || {};
     if (pair.active) {
       $('#pair-code').textContent = pair.code;
       pairCountdown(pair.expiresAt);
     } else $('#pair-box').classList.add('hidden');
     renderDevices('#local-devices', status.localDevices, '/api/local/device/remove', 'Nenhum iPad local autorizado ainda.');
-    renderDevices('#devices', status.devices, '/api/device/remove', status.configured ? 'Nenhum dispositivo Cloud pareado.' : 'Cloud Relay não configurado.');
+    renderDevices('#devices', status.devices, '/api/device/remove', status.configured ? 'Nenhum Nexus Web pareado ainda.' : 'Configure a URL do Vercel primeiro.');
     renderIntegrations(status);
     renderSetup(status);
     if (!diagnosticsLoaded) runDiagnostics(false);
@@ -168,30 +169,25 @@ async function load() {
 $('#settings-form').addEventListener('submit', async event => {
   event.preventDefault();
   try {
-    await api('/api/settings', { method:'POST', body:JSON.stringify({ supabaseUrl:$('#supabase-url').value.trim(), supabaseAnonKey:$('#supabase-key').value.trim() }) });
-    $('#supabase-key').value = '';
-    toast('Cloud Relay salvo');
+    await api('/api/settings', { method:'POST', body:JSON.stringify({ webAppUrl:$('#web-app-url').value.trim() }) });
+    toast('Nexus Web salvo');
     load();
   } catch (error) { toast(error.message); }
 });
 
 $('#pair-start').addEventListener('click', async () => {
   try {
-    const pair = await api('/api/local/pair/start', { method:'POST', body:'{}' });
+    const pair = await api('/api/pair/start', { method:'POST', body:'{}' });
     $('#pair-code').textContent = pair.code;
     pairCountdown(pair.expiresAt);
-    toast('Código local criado');
+    toast('Código de pareamento criado');
   } catch (error) { toast(error.message); }
 });
 
-$('#copy-url').addEventListener('click', async () => {
-  const value = $('#local-url').textContent.trim();
-  try {
-    await navigator.clipboard.writeText(value);
-    toast('Endereço copiado');
-  } catch {
-    toast('Selecione e copie o endereço manualmente');
-  }
+$('#open-web').addEventListener('click', () => {
+  const value = $('#nexus-web-url').textContent.trim();
+  if (!/^https:\/\//i.test(value)) { toast('Configure a URL do Nexus Web primeiro'); return; }
+  window.open(value, '_blank', 'noopener');
 });
 
 $('#obs-form').addEventListener('submit', async event => {

@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"net"
 	"net/http"
@@ -113,10 +114,16 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		"spotify": map[string]any{"clientId": cfg.Integrations.Spotify.ClientID, "authorized": cfg.Integrations.Spotify.RefreshToken != "" || cfg.Integrations.Spotify.AccessToken != ""},
 		"discord": map[string]any{"muteHotkey": cfg.Integrations.Discord.MuteHotkey, "deafenHotkey": cfg.Integrations.Discord.DeafenHotkey},
 	}
+	cloudConfigured := cfg.WebAppURL != ""
+	cloudMode := "nexus-relay"
+	if !cloudConfigured {
+		cloudMode = "unconfigured"
+	}
 	writeJSON(w, 200, map[string]any{
 		"version":        protocol.AppVersion,
-		"configured":     cfg.SupabaseURL != "" && cfg.SupabaseAnonKey != "",
-		"supabaseUrl":    cfg.SupabaseURL,
+		"configured":     cloudConfigured,
+		"cloudMode":      cloudMode,
+		"webAppUrl":      cfg.WebAppURL,
 		"devices":        devices,
 		"localDevices":   localDevices,
 		"pair":           s.pair.Status(),
@@ -192,10 +199,22 @@ func (s *Server) handleDiagnostics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfg := s.store.Snapshot()
-	if len(cfg.LocalDevices) == 0 {
-		add("pairing", "Pareamento", "warn", "Nenhum iPad autorizado ainda")
+	if cfg.WebAppURL == "" {
+		add("cloud-relay", "Nexus Web / Vercel", "warn", "Configure a URL publicada do Nexus para usar o Bridge pela internet")
+	} else if parsed, err := url.Parse(cfg.WebAppURL); err != nil || parsed.Scheme != "https" || parsed.Host == "" {
+		add("cloud-relay", "Nexus Web / Vercel", "error", "URL Web inválida")
+	} else if detail, err := checkNexusWeb(r.Context(), cfg.WebAppURL); err != nil {
+		add("cloud-relay", "Nexus Web / Vercel", "error", err.Error())
 	} else {
-		add("pairing", "Pareamento", "ok", fmt.Sprintf("%d dispositivo(s) local(is) autorizado(s)", len(cfg.LocalDevices)))
+		add("cloud-relay", "Nexus Web / Vercel", "ok", detail)
+	}
+	if len(cfg.Devices) == 0 {
+		add("pairing", "Pareamento Nexus Web", "warn", "Nenhum iPad/Nexus Web autorizado ainda")
+	} else {
+		add("pairing", "Pareamento Nexus Web", "ok", fmt.Sprintf("%d dispositivo(s) autorizado(s)", len(cfg.Devices)))
+	}
+	if len(cfg.LocalDevices) > 0 {
+		add("local-pairing", "Fallback LAN", "ok", fmt.Sprintf("%d dispositivo(s) local(is) legado(s)", len(cfg.LocalDevices)))
 	}
 
 	if startup.Enabled() {
@@ -222,6 +241,36 @@ func (s *Server) handleDiagnostics(w http.ResponseWriter, r *http.Request) {
 		"checks":        checks,
 		"summary":       summary,
 	})
+}
+
+func checkNexusWeb(ctx context.Context, raw string) (string, error) {
+	endpoint := strings.TrimRight(raw, "/") + "/api/config"
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return "", err
+	}
+	client := &http.Client{Timeout: 4 * time.Second}
+	response, err := client.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("Nexus Web não respondeu: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Nexus Web respondeu HTTP %d em /api/config", response.StatusCode)
+	}
+	var body struct {
+		Configured bool   `json:"configured"`
+		Mode       string `json:"mode"`
+		RelayURL   string `json:"relayUrl"`
+		Version    string `json:"version"`
+	}
+	if err := json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&body); err != nil {
+		return "", fmt.Errorf("/api/config inválido: %w", err)
+	}
+	if !body.Configured || body.Mode != "nexus-relay" || !strings.HasPrefix(body.RelayURL, "wss://") {
+		return "", fmt.Errorf("deploy não expõe Nexus Relay válido")
+	}
+	return fmt.Sprintf("%s · relay %s · UI v%s", raw, body.Mode, body.Version), nil
 }
 
 func testConfigWritable(configPath string) error {
@@ -266,25 +315,28 @@ func dialLocalDeck(raw string) error {
 
 func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		SupabaseURL     string `json:"supabaseUrl"`
-		SupabaseAnonKey string `json:"supabaseAnonKey"`
+		WebAppURL string `json:"webAppUrl"`
 	}
-	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 64<<10)).Decode(&body); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 32<<10)).Decode(&body); err != nil {
 		writeJSON(w, 400, map[string]any{"error": "JSON inválido"})
 		return
 	}
-	body.SupabaseURL = strings.TrimRight(strings.TrimSpace(body.SupabaseURL), "/")
-	body.SupabaseAnonKey = strings.TrimSpace(body.SupabaseAnonKey)
-	if !strings.HasPrefix(body.SupabaseURL, "https://") || len(body.SupabaseAnonKey) < 20 {
-		writeJSON(w, 400, map[string]any{"error": "URL ou chave pública inválida"})
+	body.WebAppURL = strings.TrimRight(strings.TrimSpace(body.WebAppURL), "/")
+	parsed, err := url.Parse(body.WebAppURL)
+	if err != nil || parsed.Host == "" {
+		writeJSON(w, 400, map[string]any{"error": "URL do Nexus Web inválida"})
 		return
 	}
-	if err := s.store.SetCloud(body.SupabaseURL, body.SupabaseAnonKey); err != nil {
+	if parsed.Scheme != "https" && !(parsed.Scheme == "http" && (parsed.Hostname() == "127.0.0.1" || parsed.Hostname() == "localhost")) {
+		writeJSON(w, 400, map[string]any{"error": "Use a URL HTTPS publicada no Vercel"})
+		return
+	}
+	if err := s.store.SetWebAppURL(body.WebAppURL); err != nil {
 		writeJSON(w, 500, map[string]any{"error": err.Error()})
 		return
 	}
 	s.devices.Sync()
-	writeJSON(w, 200, map[string]any{"ok": true})
+	writeJSON(w, 200, map[string]any{"ok": true, "webAppUrl": body.WebAppURL, "mode": "nexus-relay"})
 }
 
 func (s *Server) handlePairStart(w http.ResponseWriter, r *http.Request) {

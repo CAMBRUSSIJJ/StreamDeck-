@@ -30,6 +30,33 @@ func localRequest(method, path string, body []byte) *http.Request {
 	return req
 }
 
+func TestRootRedirectsToOfficialWebApp(t *testing.T) {
+	srv, _ := testServer(t)
+	if err := srv.store.SetWebAppURL("https://nexus.example"); err != nil {
+		t.Fatal(err)
+	}
+	recorder := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(recorder, localRequest(http.MethodGet, "/", nil))
+	if recorder.Code != http.StatusTemporaryRedirect {
+		t.Fatalf("expected 307, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+	if got := recorder.Header().Get("Location"); got != "https://nexus.example" {
+		t.Fatalf("unexpected redirect %q", got)
+	}
+}
+
+func TestRootWithoutWebAppExplainsVercelConfiguration(t *testing.T) {
+	srv, _ := testServer(t)
+	recorder := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(recorder, localRequest(http.MethodGet, "/", nil))
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d", recorder.Code)
+	}
+	if !bytes.Contains(recorder.Body.Bytes(), []byte("Vercel")) {
+		t.Fatalf("expected Vercel setup guidance: %s", recorder.Body.String())
+	}
+}
+
 func TestInfoIsAvailableOnPrivateLAN(t *testing.T) {
 	srv, _ := testServer(t)
 	recorder := httptest.NewRecorder()

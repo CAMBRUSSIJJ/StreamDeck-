@@ -3,10 +3,8 @@ package localserver
 import (
 	"context"
 	"crypto/subtle"
-	"embed"
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"net"
 	"net/http"
 	"os"
@@ -25,9 +23,6 @@ import (
 	"nexusdeck/companion/internal/store"
 	"nexusdeck/companion/internal/systemstate"
 )
-
-//go:embed web/* web/assets/icons/* web/js/* web/js/core/* web/js/ui/*
-var webFS embed.FS
 
 type Server struct {
 	store        *store.Store
@@ -66,9 +61,28 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/config", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"configured": false, "version": protocol.AppVersion, "mode": "local"})
 	})
-	sub, _ := fs.Sub(webFS, "web")
-	mux.Handle("/", http.FileServer(http.FS(sub)))
+	mux.HandleFunc("/", s.handleRoot)
 	return localOnly(securityHeaders(mux))
+}
+
+func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	webURL := strings.TrimRight(strings.TrimSpace(s.store.Snapshot().WebAppURL), "/")
+	if webURL != "" {
+		http.Redirect(w, r, webURL, http.StatusTemporaryRedirect)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusServiceUnavailable)
+	_, _ = w.Write([]byte(`<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nexus Windows Bridge</title><style>body{margin:0;background:#0c0d0f;color:#f3f5f7;font:16px system-ui;display:grid;place-items:center;min-height:100vh}main{max-width:560px;padding:32px}code{color:#7ee2b8}</style><main><h1>Nexus Windows Bridge</h1><p>A interface do Nexus agora é publicada no Vercel. Abra o painel do Bridge no computador e configure a URL HTTPS do seu Nexus.</p><p><code>http://127.0.0.1:38473</code></p></main></html>`))
 }
 
 func (s *Server) Listen(addr string) error {

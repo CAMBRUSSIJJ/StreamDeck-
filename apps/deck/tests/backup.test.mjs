@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { backupChecksum, backupSummary, exportPortableState, importPortableState } from '../js/core/store.js';
+import { backupChecksum, backupSummary, exportPortableState, importPortableState } from '../public/js/core/store.js';
 
 const state = {
   activePageId:'main', activeDeviceId:'pc1', devices:[{id:'pc1',secret:'hidden'}],
@@ -12,7 +12,7 @@ test('portable backup v2 excludes device credentials and adds checksum', () => {
   const backup = exportPortableState(state);
   assert.equal(backup.format, 'nexus-deck-backup');
   assert.equal(backup.version, 2);
-  assert.equal(backup.appVersion, '1.7.0');
+  assert.equal(backup.appVersion, '1.8.0');
   assert.equal('devices' in backup, false);
   assert.equal(JSON.stringify(backup).includes('hidden'), false);
   assert.equal(backup.checksum, backupChecksum(backup));
