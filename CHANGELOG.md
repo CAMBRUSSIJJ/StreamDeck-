@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0 deployment hotfix — WebSocket route
+
+- Configura explicitamente `serverDir: './server'` no plugin Nitro/Vite.
+- Corrige `/api/config` e `/api/relay` não registrados em deploys Vercel, que causavam `WebSocket handshake status 404 Not Found`.
+- Não altera o protocolo nem exige reinstalação do Windows Bridge V1.8.0.
+- Mantém `features.websocket: true`; o projeto Vercel também precisa de Fluid Compute habilitado.
+
 
 ## 1.8.0 — Vercel Live UI + Windows Bridge
 

@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const configSource = await readFile(new URL('../server/api/config.ts', import.meta.url), 'utf8');
 const relaySource = await readFile(new URL('../server/api/relay.ts', import.meta.url), 'utf8');
+const viteSource = await readFile(new URL('../vite.config.ts', import.meta.url), 'utf8');
 
 test('V1.8 config endpoint exposes same-origin Nexus Relay metadata', () => {
   assert.match(configSource, /mode:\s*'nexus-relay'/);
@@ -19,4 +20,10 @@ test('relay accepts only Nexus pair/device room shapes and forwards nexus frames
   assert.match(relaySource, /defineWebSocketHandler/);
   assert.match(relaySource, /peer\.publish\('nexus'/);
   assert.match(relaySource, /MAX_MESSAGE_BYTES/);
+});
+
+
+test('Nitro scans the server directory so Vercel deploys API and WebSocket routes', () => {
+  assert.match(viteSource, /serverDir:\s*['\"]\.\/server['\"]/);
+  assert.match(viteSource, /websocket:\s*true/);
 });

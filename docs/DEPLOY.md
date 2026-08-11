@@ -65,3 +65,15 @@ A porta `38474` permanece como fallback local. Se você abrir `http://IP-DO-PC:3
 - Vercel: abra `/api/config` e confirme `configured: true` e `mode: nexus-relay`.
 
 Se o site abrir mas o Bridge não ficar Online, verifique primeiro o deploy do `/api/relay` e se Fluid Compute/WebSockets está habilitado no projeto Vercel.
+
+## Hotfix de deploy WebSocket
+
+A configuração Nitro precisa incluir explicitamente `serverDir: './server'`. Sem isso, o Vite pode publicar a interface estática, mas `/api/config` e `/api/relay` não são registrados e o Bridge recebe `WebSocket handshake status 404 Not Found`.
+
+Depois do deploy, teste nesta ordem:
+
+1. `https://SEU-DOMINIO/api/config` deve retornar JSON com `configured: true`.
+2. Em Vercel → Project Settings → Functions, confirme **Fluid Compute** habilitado.
+3. Gere um novo deploy e só então tente o pareamento novamente.
+
+Este hotfix é somente Web/Vercel. O Windows Bridge 1.8.0 não precisa ser reinstalado.

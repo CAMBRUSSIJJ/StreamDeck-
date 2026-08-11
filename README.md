@@ -55,3 +55,6 @@ Atualize o Windows Bridge somente quando uma release alterar código nativo do W
 ## Segurança
 
 O Nexus não oferece shell arbitrário. Ações locais são tipadas e allowlisted. Consulte [SECURITY.md](SECURITY.md) para o modelo de transporte, pareamento e fallback local.
+
+
+> WebSocket deployment hotfix: `apps/deck/vite.config.ts` now declares `serverDir: './server'` explicitly so Vercel/Nitro registers `/api/config` and `/api/relay`. This hotfix does not require reinstalling the Windows Bridge.
