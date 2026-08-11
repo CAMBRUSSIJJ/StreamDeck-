@@ -1,27 +1,27 @@
 export const LAYOUT_PRESETS = Object.freeze({
   minimal: Object.freeze({
-    id:'minimal', name:'Minimal Pro', description:'Limpo, equilibrado e focado nos aplicativos.',
-    density:'comfortable', columns:5, iconSize:'medium', textAlign:'left', cardStyle:'solid', radius:16, dock:'compact', header:'full', theme:'graphite'
+    id:'minimal', name:'Key Grid', description:'Grade principal de teclas, direta e próxima de uma control surface.',
+    density:'comfortable', columns:6, iconSize:'large', textAlign:'center', cardStyle:'solid', radius:12, dock:'minimal', header:'compact', theme:'graphite'
   }),
   control: Object.freeze({
-    id:'control', name:'Control Center', description:'Widgets maiores, status e controles em destaque.',
-    density:'comfortable', columns:4, iconSize:'medium', textAlign:'left', cardStyle:'elevated', radius:18, dock:'compact', header:'full', theme:'midnight'
+    id:'control', name:'Control Keys', description:'Teclas e widgets com leitura rápida para controles do sistema.',
+    density:'comfortable', columns:5, iconSize:'medium', textAlign:'center', cardStyle:'solid', radius:12, dock:'minimal', header:'compact', theme:'oled'
   }),
   compact: Object.freeze({
-    id:'compact', name:'Compact Grid', description:'Mais ações por tela, com leitura rápida.',
-    density:'compact', columns:6, iconSize:'small', textAlign:'left', cardStyle:'outline', radius:12, dock:'minimal', header:'compact', theme:'graphite'
+    id:'compact', name:'Dense Keys', description:'Grade densa para reunir o maior número de ações por página.',
+    density:'compact', columns:8, iconSize:'small', textAlign:'center', cardStyle:'solid', radius:10, dock:'minimal', header:'compact', theme:'graphite'
   }),
   focus: Object.freeze({
-    id:'focus', name:'Focus', description:'Poucos controles grandes para rotinas importantes.',
-    density:'spacious', columns:3, iconSize:'large', textAlign:'center', cardStyle:'elevated', radius:22, dock:'minimal', header:'compact', theme:'oled'
+    id:'focus', name:'Focus Keys', description:'Teclas maiores para rotinas, macros e ações críticas.',
+    density:'spacious', columns:4, iconSize:'large', textAlign:'center', cardStyle:'solid', radius:14, dock:'minimal', header:'compact', theme:'oled'
   }),
   dashboard: Object.freeze({
-    id:'dashboard', name:'Dashboard', description:'Equilibra aplicativos, status, mídia e informações.',
-    density:'comfortable', columns:4, iconSize:'medium', textAlign:'left', cardStyle:'solid', radius:18, dock:'full', header:'full', theme:'slate'
+    id:'dashboard', name:'Info Deck', description:'Grade de teclas com status, volume e informações do computador.',
+    density:'comfortable', columns:6, iconSize:'medium', textAlign:'center', cardStyle:'solid', radius:12, dock:'compact', header:'compact', theme:'slate'
   }),
   media: Object.freeze({
-    id:'media', name:'Media Console', description:'Pensado para Spotify, OBS, Discord e áudio.',
-    density:'comfortable', columns:4, iconSize:'large', textAlign:'left', cardStyle:'elevated', radius:20, dock:'compact', header:'compact', theme:'midnight'
+    id:'media', name:'Media Keys', description:'Superfície de mídia para Spotify, OBS, Discord e áudio.',
+    density:'comfortable', columns:5, iconSize:'large', textAlign:'center', cardStyle:'solid', radius:12, dock:'minimal', header:'compact', theme:'oled'
   })
 });
 

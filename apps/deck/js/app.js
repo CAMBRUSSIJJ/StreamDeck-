@@ -103,7 +103,7 @@ function buildDeckDiagnostic() {
   try { errors = JSON.parse(localStorage.getItem(ERROR_LOG_KEY) || '[]'); } catch {}
   add('Erros recentes', errors.length ? 'warn' : 'ok', errors.length ? `${errors.length} evento(s) registrado(s) neste iPad` : 'Nenhum erro de runtime registrado');
   return {
-    format:'nexus-deck-diagnostic', version:1, appVersion:'1.2.0', generatedAt:new Date().toISOString(),
+    format:'nexus-deck-diagnostic', version:1, appVersion:'1.3.0', generatedAt:new Date().toISOString(),
     localMode:Boolean(localConfig?.configured), localUrl:localConfig?.localUrl || null,
     activeDevice:device ? { name:device.name, platform:device.platform, transport:device.transport } : null,
     checks, errors:errors.slice(-10)
@@ -983,7 +983,7 @@ function createMacroStepRow(step = null, index = 0) {
           <option value="hotkey">Atalho de teclado</option>
           <option value="media">Controle de mídia</option>
           <option value="system">Sistema</option>
-          <option value="integration">Integração profissional</option>
+          <option value="integration">Integração</option>
         </select>
       </label>
       <label>Executar quando

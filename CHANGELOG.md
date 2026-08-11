@@ -1,6 +1,20 @@
 # Changelog
 
-## 1.2.0 — Layout Engine
+## 1.3.0 — Control Surface
+
+- Interface reconstruída para uma linguagem de superfície de controle baseada em teclas.
+- Grid padrão agora usa Key Grid com 6 colunas e alinhamento central.
+- Cards viraram keycaps: superfícies sólidas, resposta de pressão e ausência de glow decorativo.
+- Ícones de aplicativos ganharam protagonismo e subtítulos ficam ocultos no modo de uso.
+- Dock vira uma barra lateral de páginas em telas largas e permanece inferior em telas menores.
+- Editor de tecla abre como inspector lateral em desktop/iPad horizontal.
+- Toolbar de edição perdeu elementos decorativos e passou a linguagem técnica.
+- Widgets de volume, mídia, status e relógio foram redesenhados como módulos do mesmo deck.
+- Presets: Key Grid, Control Keys, Dense Keys, Focus Keys, Info Deck e Media Keys.
+- Interface e Companion sincronizados na versão 1.3.0.
+- Cache PWA atualizado para `nexus-deck-v1.3.0`.
+
+## 1.3.0 — Layout Engine
 
 - Novo sistema de layout por página com seis presets profissionais: Minimal Pro, Control Center, Compact Grid, Focus, Dashboard e Media Console.
 - Personalização de 3–8 colunas, densidade, escala de ícones, alinhamento de texto, estilo de card e raio.
@@ -12,7 +26,7 @@
 - Gerenciador de páginas mostra o preset ativo e oferece acesso direto ao editor visual.
 - Biblioteca de ícones ampliada com Word, Excel, PowerPoint, Teams, OneDrive, GitHub Desktop, Explorador de Arquivos, Premiere Pro, Photoshop e Steam.
 - Novo módulo testável `js/core/layout.js`.
-- Cache PWA atualizado para `nexus-deck-v1.2.0`.
+- Cache PWA atualizado para `nexus-deck-v1.3.0`.
 - Companion/Setup recompilados com a interface local V1.2.
 
 ## 1.1.0 — Nexus Pro Layout

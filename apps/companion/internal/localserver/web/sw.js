@@ -1,4 +1,4 @@
-const CACHE = 'nexus-deck-v1.2.0';
+const CACHE = 'nexus-deck-v1.3.0';
 const ASSETS = [
   '/', '/index.html', '/styles.css', '/manifest.webmanifest',
   '/js/app.js', '/js/core/profiles.js', '/js/core/integrations.js', '/js/ui/icons.js', '/js/ui/app-icons.js', '/js/core/editor.js', '/js/core/widgets.js', '/js/core/crypto.js', '/js/core/realtime.js', '/js/core/local.js', '/js/core/store.js', '/js/core/layout.js', '/js/core/protocol.js',

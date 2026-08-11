@@ -1,41 +1,25 @@
-# Nexus Deck v1.2.0 — Layout Engine
+# Nexus Deck v1.3.0 — Control Surface
 
-Transforme o iPad em uma superfície de controle modular para Windows. A V1.2 preserva a fundação estável do Nexus e adiciona um **sistema visual por página**, com presets profissionais, temas, densidades e composição ajustável.
+Transforme o iPad em uma superfície de controle para Windows. A V1.3 muda a linguagem visual do Nexus: menos dashboard, mais **deck de teclas**.
 
-## V1.2 — Layout Engine
+## V1.3 — Control Surface
 
-Cada página pode ter uma identidade própria sem alterar seus controles, macros ou integrações.
+O modo de uso agora prioriza a grade. Os controles usam keycaps sólidos, ícones grandes, texto curto e feedback de pressão. Em telas largas, as páginas ficam numa barra lateral compacta; no modo de edição, o editor de tecla abre como um inspector lateral.
 
-Presets incluídos:
+Grades incluídas:
 
-- **Minimal Pro** — limpo e equilibrado para produtividade.
-- **Control Center** — widgets e status em destaque.
-- **Compact Grid** — mais ações por tela.
-- **Focus** — poucos controles grandes para rotinas importantes.
-- **Dashboard** — mistura aplicativos, status e informação.
-- **Media Console** — composição para OBS, Spotify, Discord e áudio.
+- **Key Grid** — superfície padrão com 6 colunas.
+- **Control Keys** — widgets e controles do sistema.
+- **Dense Keys** — mais teclas por página.
+- **Focus Keys** — teclas maiores para macros e rotinas.
+- **Info Deck** — status, volume e informações.
+- **Media Keys** — mídia, OBS, Discord e áudio.
 
-Ajustes por página:
-
-- 3 a 8 colunas;
-- densidade compacta, equilibrada ou espaçosa;
-- ícones pequenos, médios ou grandes;
-- texto à esquerda ou centralizado;
-- cards sólido, elevado, outline ou flat;
-- raio dos cards de 8 a 28 px;
-- dock oculto, minimal, compacto ou completo;
-- cabeçalho oculto, compacto ou completo;
-- temas Graphite, Midnight, Slate, Ivory e OLED Black.
-
-Também é possível salvar até 12 layouts personalizados e reutilizá-los em outras páginas, além de aplicar uma composição a todo o deck.
-
-## Biblioteca de aplicativos
-
-A biblioteca visual agora inclui Chrome, Edge, Obsidian, Spotify, Discord, OBS Studio, VS Code, Notion, Gmail, Outlook, WhatsApp, YouTube, Twitch, Word, Excel, PowerPoint, Teams, OneDrive, GitHub Desktop, Explorador de Arquivos, Adobe Premiere Pro, Photoshop e Steam.
+A biblioteca visual inclui Chrome, Edge, Obsidian, Spotify, Discord, OBS Studio, VS Code, Notion, Gmail, Outlook, WhatsApp, YouTube, Twitch, Word, Excel, PowerPoint, Teams, OneDrive, GitHub Desktop, Explorador de Arquivos, Adobe Premiere Pro, Photoshop e Steam.
 
 ## Fundação preservada
 
-Nexus Local, widgets, macros, perfis inteligentes, integrações profissionais, backup V2, diagnóstico, tray do Windows e instalador continuam disponíveis.
+Nexus Local, widgets, macros, perfis inteligentes, integrações, backup V2, diagnóstico, tray do Windows e instalador continuam disponíveis.
 
 ## Vercel
 

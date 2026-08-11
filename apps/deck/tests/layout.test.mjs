@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyPreset, LAYOUT_PRESETS, layoutFromPreset, normalizeLayout, normalizeSavedLayouts } from '../js/core/layout.js';
 
-test('layout padrão é Minimal Pro', () => {
+test('layout padrão é Key Grid', () => {
   const layout = normalizeLayout();
   assert.equal(layout.preset, 'minimal');
-  assert.equal(layout.columns, 5);
+  assert.equal(layout.columns, 6);
   assert.equal(layout.theme, 'graphite');
 });
 
@@ -15,9 +15,9 @@ test('normalização limita colunas e raio', () => {
   assert.equal(layout.radius, 8);
 });
 
-test('preset Focus aplica composição profissional', () => {
+test('preset Focus aplica composição de teclas', () => {
   const layout = applyPreset('focus');
-  assert.equal(layout.columns, 3);
+  assert.equal(layout.columns, 4);
   assert.equal(layout.textAlign, 'center');
   assert.equal(layout.iconSize, 'large');
   assert.equal(layout.theme, 'oled');
@@ -26,7 +26,7 @@ test('preset Focus aplica composição profissional', () => {
 test('todos os presets possuem identidade única', () => {
   const ids = Object.values(LAYOUT_PRESETS).map(item => item.id);
   assert.equal(new Set(ids).size, ids.length);
-  assert.equal(layoutFromPreset('media').name, 'Media Console');
+  assert.equal(layoutFromPreset('media').name, 'Media Keys');
 });
 
 test('layouts salvos são normalizados e limitados', () => {
