@@ -2,6 +2,7 @@ import { clampVolume, normalizeKind } from './widgets.js';
 import { normalizeMacro } from './protocol.js';
 import { normalizeProfile } from './profiles.js';
 import { normalizeLayout, normalizeSavedLayouts } from './layout.js';
+import { normalizeMobilePreferences } from './mobile.js';
 
 const KEY = 'nexus.deck.v0.2';
 
@@ -9,7 +10,7 @@ const defaults = {
   activePageId: 'main',
   activeDeviceId: null,
   devices: [],
-  preferences: { accent: 'indigo', smartProfiles: true, savedLayouts: [] },
+  preferences: { accent: 'indigo', smartProfiles: true, savedLayouts: [], mobile: normalizeMobilePreferences() },
   pages: [
     {
       id: 'main', name: 'Principal', icon: 'home', layout: normalizeLayout({ preset:'minimal' }), buttons: [
@@ -90,6 +91,7 @@ export function loadState() {
     const merged = { ...clone(defaults), ...parsed };
     merged.preferences = { ...clone(defaults.preferences), ...(parsed.preferences || {}) };
     merged.preferences.savedLayouts = normalizeSavedLayouts(merged.preferences.savedLayouts);
+    merged.preferences.mobile = normalizeMobilePreferences(merged.preferences.mobile);
     if (!allowedAccents.has(merged.preferences.accent)) merged.preferences.accent = 'indigo';
     merged.pages = parsed.pages.map(normalizePage);
     return migrateStarterWidgets(merged);
@@ -124,7 +126,7 @@ export function exportPortableState(state) {
   const payload = {
     format: 'nexus-deck-backup',
     version: 2,
-    appVersion: '1.3.0',
+    appVersion: '1.4.0',
     exportedAt: new Date().toISOString(),
     activePageId: state.activePageId,
     preferences: clone(state.preferences || defaults.preferences),
@@ -150,7 +152,8 @@ export function importPortableState(currentState, payload) {
       ...(currentState.preferences || {}),
       accent,
       smartProfiles: payload.preferences?.smartProfiles !== false,
-      savedLayouts: normalizeSavedLayouts(payload.preferences?.savedLayouts || currentState.preferences?.savedLayouts)
+      savedLayouts: normalizeSavedLayouts(payload.preferences?.savedLayouts || currentState.preferences?.savedLayouts),
+      mobile: normalizeMobilePreferences(payload.preferences?.mobile || currentState.preferences?.mobile)
     },
     pages
   };

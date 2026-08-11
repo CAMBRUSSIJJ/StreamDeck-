@@ -1,25 +1,33 @@
-# Nexus Deck v1.3.0 — Control Surface
+# Nexus Deck v1.4.0 — iPad / Mobile First
 
-Transforme o iPad em uma superfície de controle para Windows. A V1.3 muda a linguagem visual do Nexus: menos dashboard, mais **deck de teclas**.
+A V1.4 transforma o iPad no ambiente principal de uso do Nexus Deck. A interface web continua funcionando no Vercel e no desktop, mas dispositivos touch recebem uma experiência própria de **control surface**, com comportamento mais próximo de um aplicativo dedicado.
 
-## V1.3 — Control Surface
+## Mobile First
 
-O modo de uso agora prioriza a grade. Os controles usam keycaps sólidos, ícones grandes, texto curto e feedback de pressão. Em telas largas, as páginas ficam numa barra lateral compacta; no modo de edição, o editor de tecla abre como um inspector lateral.
-
-Grades incluídas:
-
-- **Key Grid** — superfície padrão com 6 colunas.
-- **Control Keys** — widgets e controles do sistema.
-- **Dense Keys** — mais teclas por página.
-- **Focus Keys** — teclas maiores para macros e rotinas.
-- **Info Deck** — status, volume e informações.
-- **Media Keys** — mídia, OBS, Discord e áudio.
-
-A biblioteca visual inclui Chrome, Edge, Obsidian, Spotify, Discord, OBS Studio, VS Code, Notion, Gmail, Outlook, WhatsApp, YouTube, Twitch, Word, Excel, PowerPoint, Teams, OneDrive, GitHub Desktop, Explorador de Arquivos, Adobe Premiere Pro, Photoshop e Steam.
+- grade independente por orientação: configuração própria para iPad vertical e horizontal;
+- escala das teclas: compacta, normal ou grande;
+- swipe horizontal para trocar de página;
+- long press em uma tecla para entrar na edição e abrir suas propriedades;
+- bloqueio de edição para uso diário sem mudanças acidentais;
+- modo controle imersivo, reduzindo cabeçalhos e elementos de configuração;
+- diálogos e editor em **bottom sheet** no iPad;
+- safe areas, PWA standalone e layout otimizado para Tela de Início;
+- navegação inferior compacta e teclas dimensionadas especificamente para toque;
+- preferências mobile preservadas no Backup V2.
 
 ## Fundação preservada
 
-Nexus Local, widgets, macros, perfis inteligentes, integrações, backup V2, diagnóstico, tray do Windows e instalador continuam disponíveis.
+Nexus Local, Companion Windows, macros, perfis inteligentes, integrações profissionais, Layout Engine, biblioteca de ícones, diagnóstico, backup, tray e instalador continuam disponíveis.
+
+## Uso local sem Supabase
+
+1. Instale o Nexus Companion no Windows.
+2. PC e iPad devem estar na mesma rede privada.
+3. Abra no Safari do iPad o endereço `http://IP-DO-PC:38474` mostrado pelo Companion.
+4. Gere o código de pareamento no Windows e informe no iPad.
+5. Opcionalmente use **Compartilhar → Adicionar à Tela de Início** para abrir em modo standalone.
+
+Supabase é opcional e não participa do modo Nexus Local.
 
 ## Vercel
 

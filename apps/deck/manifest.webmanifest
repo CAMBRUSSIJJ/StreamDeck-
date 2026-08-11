@@ -1,7 +1,7 @@
 {
   "name": "Nexus Deck",
   "short_name": "Nexus",
-  "description": "Painel de controle premium para transformar seu iPad em uma central de comandos do computador.",
+  "description": "Nexus Deck Mobile First: transforme o iPad em uma superfície de controle local para o Windows.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -9,8 +9,25 @@
   "theme_color": "#080a0f",
   "orientation": "any",
   "icons": [
-    {"src":"/assets/icons/icon-192.png","sizes":"192x192","type":"image/png"},
-    {"src":"/assets/icons/icon-512.png","sizes":"512x512","type":"image/png"},
-    {"src":"/assets/icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "display_override": [
+    "standalone",
+    "fullscreen"
   ]
 }

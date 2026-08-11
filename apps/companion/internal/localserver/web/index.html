@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#080a0f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Nexus Deck" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -41,6 +43,7 @@
           </span>
           <span class="chevron" aria-hidden="true">⌄</span>
         </button>
+        <span id="mobile-lock-indicator" class="mobile-lock-indicator hidden" aria-label="Edição bloqueada" title="Edição bloqueada"><span class="ui-icon" data-icon="lock"></span></span>
         <button id="settings-open" class="icon-button" type="button" aria-label="Configurações">
           <span class="ui-icon" data-icon="settings"></span>
         </button>
@@ -332,6 +335,33 @@
         </div>
       </section>
 
+      <section class="settings-section mobile-first-settings">
+        <div class="settings-heading"><div><h3>iPad / Mobile First</h3><p>Controles específicos para usar o Nexus como uma superfície de controle dedicada no iPad.</p></div></div>
+        <div class="mobile-settings-grid">
+          <label class="settings-toggle"><input id="mobile-immersive-toggle" type="checkbox" checked /><span></span><strong>Modo controle imersivo</strong></label>
+          <label class="settings-toggle"><input id="mobile-lock-toggle" type="checkbox" /><span></span><strong>Bloquear edição</strong></label>
+          <label class="settings-toggle"><input id="mobile-swipe-toggle" type="checkbox" checked /><span></span><strong>Swipe entre páginas</strong></label>
+          <label class="settings-toggle"><input id="mobile-longpress-toggle" type="checkbox" checked /><span></span><strong>Segurar para editar</strong></label>
+        </div>
+        <div class="mobile-settings-selects">
+          <label>Escala das teclas
+            <select id="mobile-scale"><option value="compact">Compacta</option><option value="normal">Normal</option><option value="large">Grande</option></select>
+          </label>
+          <label>Colunas · iPad vertical
+            <select id="mobile-portrait-columns"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+          </label>
+          <label>Colunas · iPad horizontal
+            <select id="mobile-landscape-columns"><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+          </label>
+        </div>
+        <div class="mobile-control-preview">
+          <div><span>Orientação atual</span><strong id="mobile-orientation-status">—</strong></div>
+          <div><span>Grade efetiva</span><strong id="mobile-columns-status">—</strong></div>
+          <div><span>Modo de exibição</span><strong id="mobile-display-status">Safari</strong></div>
+        </div>
+        <p class="settings-note">No modo bloqueado o botão de edição e o long press ficam desativados. Para desbloquear, abra Ajustes novamente.</p>
+      </section>
+
       <section class="settings-section">
         <div class="settings-heading"><div><h3>Perfis inteligentes</h3><p>Troque automaticamente de página conforme o aplicativo em primeiro plano no Windows.</p></div></div>
         <div class="smart-profile-settings">
@@ -359,7 +389,7 @@
           <div><span>Endereço local</span><strong id="local-url">—</strong></div>
           <div><span>Cloud Relay</span><strong id="cloud-status">Verificando…</strong></div>
           <div><span>Protocolo</span><strong>v1 · AES-256-GCM</strong></div>
-          <div><span>Interface</span><strong>V1.3.0 · Control Surface</strong></div>
+          <div><span>Interface</span><strong>V1.4.0 · iPad / Mobile First</strong></div>
         </div>
         <div class="settings-actions-row diagnostic-actions-row">
           <button id="deck-diagnostic" class="ghost-button" type="button">Diagnóstico rápido</button>
@@ -393,19 +423,19 @@
     <div class="dialog-content">
       <div class="onboarding-top">
         <div class="brand-mark onboarding-mark" aria-hidden="true"><span></span><span></span></div>
-        <div><div class="section-kicker">NEXUS DECK V1.3</div><h2>Seu painel está pronto.</h2></div>
+        <div><div class="section-kicker">NEXUS DECK V1.4</div><h2>Seu control deck está pronto.</h2></div>
         <button id="onboarding-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
       </div>
       <div class="onboarding-progress"><span id="onboarding-progress-bar"></span></div>
       <div class="onboarding-pages">
         <section class="onboarding-page" data-onboarding-step="0">
-          <div class="onboarding-visual">01</div><h3>Use o Nexus Local</h3><p>Para controle real do Windows, abra no Safari do iPad o endereço mostrado pelo Nexus Companion. O Vercel continua útil para preview e distribuição.</p>
+          <div class="onboarding-visual">01</div><h3>Use o Nexus Local</h3><p>Para controle real do Windows, abra no Safari do iPad o endereço mostrado pelo Nexus Companion. Depois use Compartilhar → Adicionar à Tela de Início para abrir o Nexus como uma experiência standalone.</p>
         </section>
         <section class="onboarding-page hidden" data-onboarding-step="1">
           <div class="onboarding-visual">02</div><h3>Pareie com segurança</h3><p>No painel do Windows, gere um código de 6 dígitos. Depois toque em “Nenhum PC” no topo do iPad e informe o código. O dispositivo fica autorizado localmente.</p>
         </section>
         <section class="onboarding-page hidden" data-onboarding-step="2">
-          <div class="onboarding-visual">03</div><h3>Personalize o seu Deck</h3><p>Use “Editar deck” para criar botões, sliders, macros, páginas e perfis inteligentes. As alterações ficam salvas neste iPad.</p>
+          <div class="onboarding-visual">03</div><h3>Personalize o seu Deck</h3><p>Deslize para trocar de página e segure uma tecla para editá-la. Em Ajustes você também pode bloquear a edição e escolher uma grade diferente para o iPad vertical e horizontal.</p>
         </section>
         <section class="onboarding-page hidden" data-onboarding-step="3">
           <div class="onboarding-visual done">✓</div><h3>Pronto para trabalhar</h3><p>O Companion pode iniciar com o Windows e ficar na bandeja. Se algo falhar, use o diagnóstico rápido aqui ou o diagnóstico completo no painel do Windows.</p>

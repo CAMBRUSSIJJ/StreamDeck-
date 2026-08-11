@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { APP_ICON_OPTIONS, appIconSvg, inferAppIcon, resolvedAppIcon } from '../js/ui/app-icons.js';
 
-test('biblioteca V1.3 expõe ícones principais', () => {
+test('biblioteca de ícones expõe aplicativos principais', () => {
   const values = new Set(APP_ICON_OPTIONS.map(([value]) => value));
   for (const id of ['chrome','obsidian','spotify','discord','obs','vscode','notion','gmail','outlook','whatsapp','youtube','twitch','word','excel','powerpoint','teams','onedrive','github','explorer','premiere','photoshop','steam']) {
     assert.ok(values.has(id), `ícone ausente: ${id}`);

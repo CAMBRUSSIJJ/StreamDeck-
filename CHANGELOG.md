@@ -1,20 +1,22 @@
 # Changelog
 
-## 1.3.0 — Control Surface
+## 1.4.0 — iPad / Mobile First
 
-- Interface reconstruída para uma linguagem de superfície de controle baseada em teclas.
-- Grid padrão agora usa Key Grid com 6 colunas e alinhamento central.
-- Cards viraram keycaps: superfícies sólidas, resposta de pressão e ausência de glow decorativo.
-- Ícones de aplicativos ganharam protagonismo e subtítulos ficam ocultos no modo de uso.
-- Dock vira uma barra lateral de páginas em telas largas e permanece inferior em telas menores.
-- Editor de tecla abre como inspector lateral em desktop/iPad horizontal.
-- Toolbar de edição perdeu elementos decorativos e passou a linguagem técnica.
-- Widgets de volume, mídia, status e relógio foram redesenhados como módulos do mesmo deck.
-- Presets: Key Grid, Control Keys, Dense Keys, Focus Keys, Info Deck e Media Keys.
-- Interface e Companion sincronizados na versão 1.3.0.
-- Cache PWA atualizado para `nexus-deck-v1.3.0`.
+- Experiência touch própria para iPad, separada do comportamento desktop.
+- Grade por orientação com quantidade de colunas independente em portrait e landscape.
+- Escala mobile de teclas: compacta, normal e grande.
+- Swipe horizontal entre páginas com supressão do clique acidental após o gesto.
+- Long press para abrir a edição de uma tecla diretamente no iPad.
+- Modo de bloqueio desativa edição e long press durante uso diário.
+- Modo controle imersivo reduz cabeçalho e elementos administrativos.
+- Editor, páginas, layout, dispositivos e ajustes passam a abrir como bottom sheets em dispositivos touch.
+- Navegação inferior fixa e compacta, respeitando safe areas do iPadOS.
+- Preferências mobile persistidas e incluídas no Backup V2.
+- Novo módulo testável `js/core/mobile.js`.
+- PWA atualizada para cache `nexus-deck-v1.4.0`.
+- Companion e Setup recompilados com a interface local V1.4.
 
-## 1.3.0 — Layout Engine
+## 1.2.0 — Layout Engine
 
 - Novo sistema de layout por página com seis presets profissionais: Minimal Pro, Control Center, Compact Grid, Focus, Dashboard e Media Console.
 - Personalização de 3–8 colunas, densidade, escala de ícones, alinhamento de texto, estilo de card e raio.
@@ -26,7 +28,7 @@
 - Gerenciador de páginas mostra o preset ativo e oferece acesso direto ao editor visual.
 - Biblioteca de ícones ampliada com Word, Excel, PowerPoint, Teams, OneDrive, GitHub Desktop, Explorador de Arquivos, Premiere Pro, Photoshop e Steam.
 - Novo módulo testável `js/core/layout.js`.
-- Cache PWA atualizado para `nexus-deck-v1.3.0`.
+- Cache PWA atualizado para `nexus-deck-v1.2.0`.
 - Companion/Setup recompilados com a interface local V1.2.
 
 ## 1.1.0 — Nexus Pro Layout

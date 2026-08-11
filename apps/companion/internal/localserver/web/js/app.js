@@ -10,16 +10,18 @@ import { integrationActionLabel, integrationCommand, integrationDescriptor, inte
 import { hydrateStaticIcons, iconSvg, semanticIcon } from './ui/icons.js';
 import { APP_ICON_OPTIONS, resolvedAppIcon } from './ui/app-icons.js';
 import { LAYOUT_PRESETS, applyPreset, layoutSummary, normalizeLayout, normalizeSavedLayouts } from './core/layout.js';
+import { columnsForViewport, normalizeMobilePreferences, orientationForViewport, pageIdByDelta, qualifiesAsSwipe } from './core/mobile.js';
 
 const $ = selector => document.querySelector(selector);
 const els = {
-  grid: $('#deck-grid'), dock: $('#page-dock'), pageTitle: $('#page-title'), pageSummary: $('#page-summary'), addButton: $('#add-button'), editToggle: $('#edit-toggle'), editToggleLabel: $('#edit-toggle-label'), editBadge: $('#edit-badge'), editToolbar: $('#edit-toolbar'), pageManage: $('#page-manage'), layoutOpen: $('#layout-open'),
+  grid: $('#deck-grid'), deckStage: $('.deck-stage'), dock: $('#page-dock'), pageTitle: $('#page-title'), pageSummary: $('#page-summary'), addButton: $('#add-button'), editToggle: $('#edit-toggle'), editToggleLabel: $('#edit-toggle-label'), editBadge: $('#edit-badge'), editToolbar: $('#edit-toolbar'), pageManage: $('#page-manage'), layoutOpen: $('#layout-open'),
   pageDialog: $('#page-dialog'), pageClose: $('#page-close'), pageList: $('#page-list'), pageCreate: $('#page-create'), newPageName: $('#new-page-name'),
   layoutDialog: $('#layout-dialog'), layoutClose: $('#layout-close'), layoutCancel: $('#layout-cancel'), layoutSave: $('#layout-save'), layoutReset: $('#layout-reset'), layoutApplyAll: $('#layout-apply-all'), layoutPresetGrid: $('#layout-preset-grid'), layoutPageName: $('#layout-page-name'), layoutDraftSummary: $('#layout-draft-summary'), layoutDensity: $('#layout-density'), layoutColumns: $('#layout-columns'), layoutIconSize: $('#layout-icon-size'), layoutTextAlign: $('#layout-text-align'), layoutCardStyle: $('#layout-card-style'), layoutRadius: $('#layout-radius'), layoutRadiusValue: $('#layout-radius-value'), layoutDock: $('#layout-dock'), layoutHeader: $('#layout-header'), layoutTheme: $('#layout-theme'), savedLayoutList: $('#saved-layout-list'), savedLayoutName: $('#saved-layout-name'), savedLayoutSave: $('#saved-layout-save'),
   devicePill: $('#device-pill'), deviceName: $('#device-name'), deviceStatusText: $('#device-status-text'), deviceDialog: $('#device-dialog'), deviceList: $('#device-list'), deviceClose: $('#device-close'), pairCode: $('#pair-code'), pairStart: $('#pair-start'), pairProgress: $('#pair-progress'),
   settingsOpen: $('#settings-open'), settingsDialog: $('#settings-dialog'), settingsClose: $('#settings-close'), cloudStatus: $('#cloud-status'), localStatus: $('#local-status'), localUrl: $('#local-url'), resetData: $('#reset-data'), exportDeck: $('#export-deck'), importDeck: $('#import-deck'), importDeckFile: $('#import-deck-file'), accentPicker: $('#accent-picker'), smartProfilesToggle: $('#smart-profiles-toggle'), foregroundStatus: $('#foreground-status'), integrationObsStatus: $('#integration-obs-status'), integrationSpotifyStatus: $('#integration-spotify-status'), integrationDiscordStatus: $('#integration-discord-status'), integrationBrowserStatus: $('#integration-browser-status'), deckDiagnostic: $('#deck-diagnostic'), deckDiagnosticExport: $('#deck-diagnostic-export'), deckDiagnosticResult: $('#deck-diagnostic-result'), onboardingOpen: $('#onboarding-open'), onboardingDialog: $('#onboarding-dialog'), onboardingClose: $('#onboarding-close'), onboardingPrev: $('#onboarding-prev'), onboardingNext: $('#onboarding-next'), onboardingStepLabel: $('#onboarding-step-label'), onboardingProgressBar: $('#onboarding-progress-bar'),
   buttonDialog: $('#button-dialog'), buttonForm: $('#button-form'), buttonDialogTitle: $('#button-dialog-title'), btnKind: $('#btn-kind'), btnLabel: $('#btn-label'), btnIcon: $('#btn-icon'), btnAppIcon: $('#btn-app-icon'), btnColor: $('#btn-color'), btnSize: $('#btn-size'), btnActionType: $('#btn-action-type'), actionTypeLabel: $('#action-type-label'), actionSection: $('#action-section'), actionSectionTitle: $('#action-section-title'), actionFields: $('#action-fields'), deleteButton: $('#delete-button'), duplicateButton: $('#duplicate-button'), editorPreview: $('#editor-preview'), previewIcon: $('#preview-icon'), previewLabel: $('#preview-label'), previewSize: $('#preview-size'),
-  clockTime: $('#clock-time'), clockDate: $('#clock-date'), toastRegion: $('#toast-region')
+  clockTime: $('#clock-time'), clockDate: $('#clock-date'), toastRegion: $('#toast-region'),
+  mobileLockIndicator: $('#mobile-lock-indicator'), mobileImmersiveToggle: $('#mobile-immersive-toggle'), mobileLockToggle: $('#mobile-lock-toggle'), mobileSwipeToggle: $('#mobile-swipe-toggle'), mobileLongpressToggle: $('#mobile-longpress-toggle'), mobileScale: $('#mobile-scale'), mobilePortraitColumns: $('#mobile-portrait-columns'), mobileLandscapeColumns: $('#mobile-landscape-columns'), mobileOrientationStatus: $('#mobile-orientation-status'), mobileColumnsStatus: $('#mobile-columns-status'), mobileDisplayStatus: $('#mobile-display-status')
 };
 
 let state = loadState();
@@ -38,12 +40,15 @@ const pendingAcks = new Map();
 const sizeLabels = { square:'1 × 1', wide:'2 × 1', tall:'1 × 2', large:'2 × 2' };
 const actionChips = { open_url:'Web', launch_app:'App', hotkey:'Atalho', media:'Mídia', system:'Sistema', integration:'Integração', macro:'Macro' };
 const kindChips = { button:'Ação', toggle:'Toggle', macro:'Macro', volume:'Volume', media_panel:'Mídia', status:'Status', clock:'Relógio' };
-const ONBOARDING_KEY = 'nexus.deck.onboarding.v1';
+const ONBOARDING_KEY = 'nexus.deck.onboarding.v1.4';
 const ERROR_LOG_KEY = 'nexus.deck.errors.v1';
 let onboardingStep = 0;
 let lastDeckDiagnostic = null;
 let layoutEditingPageId = null;
 let layoutDraft = null;
+const touchDeck = navigator.maxTouchPoints > 0 && (window.matchMedia?.('(pointer: coarse)').matches ?? true);
+let mobileGesture = null;
+let mobileResizeTimer = null;
 
 hydrateStaticIcons();
 for (const [value, label] of APP_ICON_OPTIONS.slice(2)) { const option=document.createElement('option'); option.value=value; option.textContent=label; els.btnAppIcon?.append(option); }
@@ -103,7 +108,7 @@ function buildDeckDiagnostic() {
   try { errors = JSON.parse(localStorage.getItem(ERROR_LOG_KEY) || '[]'); } catch {}
   add('Erros recentes', errors.length ? 'warn' : 'ok', errors.length ? `${errors.length} evento(s) registrado(s) neste iPad` : 'Nenhum erro de runtime registrado');
   return {
-    format:'nexus-deck-diagnostic', version:1, appVersion:'1.3.0', generatedAt:new Date().toISOString(),
+    format:'nexus-deck-diagnostic', version:1, appVersion:'1.4.0', generatedAt:new Date().toISOString(),
     localMode:Boolean(localConfig?.configured), localUrl:localConfig?.localUrl || null,
     activeDevice:device ? { name:device.name, platform:device.platform, transport:device.transport } : null,
     checks, errors:errors.slice(-10)
@@ -160,7 +165,48 @@ function applyLayoutToDocument(input = null) {
   return layout;
 }
 
+function currentMobilePreferences() {
+  state.preferences = { ...(state.preferences || {}), mobile:normalizeMobilePreferences(state.preferences?.mobile) };
+  return state.preferences.mobile;
+}
+
+function isStandaloneDeck() {
+  return Boolean(navigator.standalone) || Boolean(window.matchMedia?.('(display-mode: standalone)').matches);
+}
+
+function updateMobileEnvironment() {
+  const mobile = currentMobilePreferences();
+  const orientation = orientationForViewport(window.innerWidth, window.innerHeight);
+  const columns = columnsForViewport(mobile, window.innerWidth, window.innerHeight);
+  document.body.classList.toggle('touch-deck', touchDeck);
+  document.body.classList.toggle('standalone-deck', isStandaloneDeck());
+  document.body.classList.toggle('control-locked', touchDeck && mobile.locked);
+  document.body.dataset.mobileImmersive = String(Boolean(mobile.immersive));
+  document.body.dataset.mobileScale = mobile.scale;
+  document.body.dataset.orientation = orientation;
+  document.body.style.setProperty('--mobile-columns', String(columns));
+  els.mobileLockIndicator?.classList.toggle('hidden', !(touchDeck && mobile.locked));
+  if (els.mobileImmersiveToggle) els.mobileImmersiveToggle.checked = mobile.immersive;
+  if (els.mobileLockToggle) els.mobileLockToggle.checked = mobile.locked;
+  if (els.mobileSwipeToggle) els.mobileSwipeToggle.checked = mobile.swipePages;
+  if (els.mobileLongpressToggle) els.mobileLongpressToggle.checked = mobile.longPressEdit;
+  if (els.mobileScale) els.mobileScale.value = mobile.scale;
+  if (els.mobilePortraitColumns) els.mobilePortraitColumns.value = String(mobile.portraitColumns);
+  if (els.mobileLandscapeColumns) els.mobileLandscapeColumns.value = String(mobile.landscapeColumns);
+  if (els.mobileOrientationStatus) els.mobileOrientationStatus.textContent = orientation === 'landscape' ? 'Horizontal' : 'Vertical';
+  if (els.mobileColumnsStatus) els.mobileColumnsStatus.textContent = touchDeck ? `${columns} colunas` : 'Layout da página';
+  if (els.mobileDisplayStatus) els.mobileDisplayStatus.textContent = isStandaloneDeck() ? 'Tela de Início · standalone' : (touchDeck ? 'Safari' : 'Desktop');
+}
+
+function setMobilePreference(key, value) {
+  const mobile = { ...currentMobilePreferences(), [key]:value };
+  state.preferences.mobile = normalizeMobilePreferences(mobile);
+  if (state.preferences.mobile.locked && editing) editing = false;
+  persist(); applyAppearance(); renderEditingState(); renderButtons();
+}
+
 function applyAppearance() {
+  updateMobileEnvironment();
   const accent = state.preferences?.accent || 'indigo';
   document.body.dataset.accent = accent;
   els.accentPicker?.querySelectorAll('[data-accent]').forEach(button => button.classList.toggle('active', button.dataset.accent === accent));
@@ -697,17 +743,79 @@ function renderClockWidget(button, index) {
   return node;
 }
 
+function bindMobileLongPress(node, button) {
+  if (!touchDeck || editing) return;
+  const mobile = currentMobilePreferences();
+  if (mobile.locked || !mobile.longPressEdit) return;
+  let timer = null; let startX = 0; let startY = 0; let fired = false;
+  const clear = () => { if (timer) clearTimeout(timer); timer = null; };
+  node.addEventListener('pointerdown', event => {
+    if (event.pointerType && event.pointerType !== 'touch') return;
+    if (event.target.closest('input,select,textarea,.media-controls button,.edit-handle')) return;
+    startX = event.clientX; startY = event.clientY; fired = false; clear();
+    timer = setTimeout(() => {
+      fired = true; suppressClickUntil = performance.now() + 700;
+      navigator.vibrate?.(18);
+      editing = true; renderEditingState(); renderButtons();
+      setTimeout(() => openButtonEditor(button.id), 20);
+    }, 560);
+  }, { passive:true });
+  node.addEventListener('pointermove', event => { if (Math.hypot(event.clientX-startX,event.clientY-startY) > 12) clear(); }, { passive:true });
+  node.addEventListener('pointerup', clear, { passive:true });
+  node.addEventListener('pointercancel', clear, { passive:true });
+  node.addEventListener('contextmenu', event => { if (fired || touchDeck) event.preventDefault(); });
+}
+
+function animatePageSwipe(delta) {
+  if (!els.deckStage) return;
+  const cls = delta > 0 ? 'page-swipe-next' : 'page-swipe-prev';
+  els.deckStage.classList.remove('page-swipe-next','page-swipe-prev');
+  void els.deckStage.offsetWidth;
+  els.deckStage.classList.add(cls);
+  setTimeout(() => els.deckStage?.classList.remove(cls), 220);
+}
+
+function navigatePageByDelta(delta) {
+  const nextId = pageIdByDelta(state.pages, state.activePageId, delta);
+  if (!nextId || nextId === state.activePageId) return;
+  animatePageSwipe(delta);
+  selectPageManually(nextId, { overrideMs:30_000 });
+}
+
+function bindMobileGestures() {
+  if (!els.deckStage) return;
+  els.deckStage.addEventListener('pointerdown', event => {
+    const mobile = currentMobilePreferences();
+    if (!touchDeck || editing || !mobile.swipePages) return;
+    if (event.pointerType && event.pointerType !== 'touch') return;
+    if (event.target.closest('input,select,textarea,.media-controls button,.edit-handle')) return;
+    mobileGesture = { pointerId:event.pointerId, x:event.clientX, y:event.clientY, time:performance.now() };
+  }, { passive:true });
+  els.deckStage.addEventListener('pointerup', event => {
+    if (!mobileGesture || event.pointerId !== mobileGesture.pointerId) return;
+    const start = mobileGesture; mobileGesture = null;
+    const delta = qualifiesAsSwipe(start, { x:event.clientX, y:event.clientY, time:performance.now() });
+    if (!delta) return;
+    suppressClickUntil = performance.now() + 550;
+    navigatePageByDelta(delta);
+  }, { passive:true });
+  els.deckStage.addEventListener('pointercancel', () => { mobileGesture = null; }, { passive:true });
+}
+
 function renderControl(button, index) {
+  let node;
   switch (normalizeKind(button.kind)) {
-    case 'volume': return renderVolumeWidget(button, index);
-    case 'media_panel': return renderMediaWidget(button, index);
-    case 'status': return renderStatusWidget(button, index);
-    case 'clock': return renderClockWidget(button, index);
+    case 'volume': node = renderVolumeWidget(button, index); break;
+    case 'media_panel': node = renderMediaWidget(button, index); break;
+    case 'status': node = renderStatusWidget(button, index); break;
+    case 'clock': node = renderClockWidget(button, index); break;
     case 'macro':
     case 'toggle':
     case 'button':
-    default: return renderActionButton(button, index);
+    default: node = renderActionButton(button, index);
   }
+  if (!editing) bindMobileLongPress(node, button);
+  return node;
 }
 
 function updateLiveWidgets(now = new Date()) {
@@ -739,6 +847,7 @@ function renderButtons() {
 }
 
 function renderEditingState() {
+  if (touchDeck && currentMobilePreferences().locked) editing = false;
   document.body.classList.toggle('editing-mode', editing);
   els.editBadge.classList.toggle('hidden', !editing);
   els.editToolbar.classList.toggle('hidden', !editing);
@@ -1356,7 +1465,10 @@ async function loadCloudConfig() {
   }
 }
 
-els.editToggle.addEventListener('click', () => { editing = !editing; renderEditingState(); renderButtons(); });
+els.editToggle.addEventListener('click', () => {
+  if (touchDeck && currentMobilePreferences().locked) { applyAppearance(); els.settingsDialog.showModal(); toast('Edição bloqueada. Desative “Bloquear edição” nos Ajustes.'); return; }
+  editing = !editing; renderEditingState(); renderButtons();
+});
 els.addButton.addEventListener('click', () => openButtonEditor());
 els.btnKind.addEventListener('change', editorKindPreset);
 els.btnActionType.addEventListener('change', () => renderActionFields({ action:null }));
@@ -1412,6 +1524,17 @@ els.pairStart.addEventListener('click', async () => {
   } catch (error) { els.pairProgress.textContent = error.message; toast(error.message, 'error'); }
   finally { els.pairStart.disabled = false; }
 });
+els.mobileImmersiveToggle?.addEventListener('change', () => setMobilePreference('immersive', els.mobileImmersiveToggle.checked));
+els.mobileLockToggle?.addEventListener('change', () => {
+  setMobilePreference('locked', els.mobileLockToggle.checked);
+  toast(els.mobileLockToggle.checked ? 'Edição bloqueada no iPad.' : 'Edição desbloqueada.', 'success');
+});
+els.mobileSwipeToggle?.addEventListener('change', () => setMobilePreference('swipePages', els.mobileSwipeToggle.checked));
+els.mobileLongpressToggle?.addEventListener('change', () => setMobilePreference('longPressEdit', els.mobileLongpressToggle.checked));
+els.mobileScale?.addEventListener('change', () => setMobilePreference('scale', els.mobileScale.value));
+els.mobilePortraitColumns?.addEventListener('change', () => setMobilePreference('portraitColumns', Number(els.mobilePortraitColumns.value)));
+els.mobileLandscapeColumns?.addEventListener('change', () => setMobilePreference('landscapeColumns', Number(els.mobileLandscapeColumns.value)));
+
 els.settingsOpen.addEventListener('click', () => { applyAppearance(); els.settingsDialog.showModal(); });
 els.settingsClose.addEventListener('click', () => els.settingsDialog.close());
 els.accentPicker.addEventListener('click', event => {
@@ -1464,6 +1587,10 @@ els.resetData.addEventListener('click', () => {
   for (const item of deviceChannels.values()) { item.channel?.stop?.(); if (item.timer) clearInterval(item.timer); }
   deviceChannels.clear(); deviceStatuses.clear(); state = resetState(); manualPageId = state.activePageId; autoProfilePageId = null; profileOverrideUntil = 0; persist(); render(); els.settingsDialog.close(); toast('Dados locais apagados.');
 });
+
+bindMobileGestures();
+window.addEventListener('resize', () => { clearTimeout(mobileResizeTimer); mobileResizeTimer=setTimeout(() => { updateMobileEnvironment(); }, 90); }, { passive:true });
+window.addEventListener('orientationchange', () => setTimeout(updateMobileEnvironment, 120));
 
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 setInterval(() => renderDeviceState(), 5000);

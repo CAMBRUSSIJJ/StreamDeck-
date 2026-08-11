@@ -21,7 +21,7 @@
 
 ## Processo Windows
 
-A V1.3 usa uma única instância do Companion. Um segundo lançamento detecta o painel em `127.0.0.1:38473`, abre a instância existente e encerra o novo processo.
+A V1.4 usa uma única instância do Companion. Um segundo lançamento detecta o painel em `127.0.0.1:38473`, abre a instância existente e encerra o novo processo.
 
 No Windows, o Companion também cria um ícone de bandeja. O menu oferece:
 
@@ -60,7 +60,7 @@ Integration Manager
  └─ Browser Adapter ─ hotkeys allowlisted
 ```
 
-## Diagnóstico V1.3
+## Diagnóstico V1.4
 
 O painel administrativo testa localmente:
 
@@ -80,4 +80,4 @@ O backup portátil do iPad contém páginas, controles, macros, perfis e prefer�
 
 ## Atualizações
 
-O Companion consulta a release mais recente de `CAMBRUSSIJJ/StreamDeck` pelo GitHub Releases apenas quando o usuário solicita. A V1.3 informa se há versão nova e abre a release; não substitui o executável silenciosamente.
+O Companion consulta a release mais recente de `CAMBRUSSIJJ/StreamDeck` pelo GitHub Releases apenas quando o usuário solicita. A V1.4 informa se há versão nova e abre a release; não substitui o executável silenciosamente.
