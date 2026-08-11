@@ -32,7 +32,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	background := hasArg("--background")
 
-	// V1.1 is single-instance. A second launch opens the existing dashboard
+	// V1.2 is single-instance. A second launch opens the existing dashboard
 	// instead of failing with an opaque port error.
 	if portOpen(adminAddr) {
 		if !background && os.Getenv("NEXUS_NO_BROWSER") == "" {

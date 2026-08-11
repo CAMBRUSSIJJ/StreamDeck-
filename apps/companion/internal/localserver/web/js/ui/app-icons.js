@@ -50,6 +50,46 @@ const appIcons = {
   twitch: {
     name:'Twitch', color:'#9146FF',
     svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#9146FF" d="M8 5h35v25L33 40H23l-6 6v-6H8V5Z"/><path fill="#fff" d="M13 10v24h8v5l5-5h9l5-5V10H13Zm10 15h-4V15h4v10Zm10 0h-4V15h4v10Z"/></svg>`
+  },
+  word: {
+    name:'Microsoft Word', color:'#2B579A',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="17" y="6" width="27" height="36" rx="3" fill="#2B579A"/><rect x="22" y="10" width="22" height="7" fill="#4F81BD"/><rect x="22" y="19" width="22" height="7" fill="#3B73B9"/><rect x="22" y="28" width="22" height="10" fill="#2F65A7"/><rect x="4" y="11" width="24" height="27" rx="3" fill="#185ABD"/><path fill="#fff" d="M10 18h4l2.1 10 2.5-10h3.5l2.2 10 2.1-10H30l-3.7 13h-4l-2-9-2.3 9h-4l-4-13Z"/></svg>`
+  },
+  excel: {
+    name:'Microsoft Excel', color:'#217346',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="17" y="6" width="27" height="36" rx="3" fill="#217346"/><path stroke="#fff" stroke-opacity=".48" stroke-width="1.4" d="M23 12h15M23 19h15M23 26h15M23 33h15M28 10v27M34 10v27"/><rect x="4" y="11" width="24" height="27" rx="3" fill="#107C41"/><path fill="#fff" d="m10 18 4.1 6.4L9.7 31h4.5l2.3-4.2 2.3 4.2h4.6l-4.5-6.7 4.1-6.3h-4.3l-2.1 3.9-2.1-3.9H10Z"/></svg>`
+  },
+  powerpoint: {
+    name:'Microsoft PowerPoint', color:'#D24726',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="31" cy="24" r="15" fill="#D24726"/><path fill="#F2B19B" d="M31 9v15h15A15 15 0 0 0 31 9Z"/><rect x="4" y="11" width="24" height="27" rx="3" fill="#B7472A"/><path fill="#fff" d="M11 18h7.1c4 0 6.4 2 6.4 5.5 0 3.7-2.5 5.7-6.5 5.7h-2.6V33H11V18Zm4.4 3.5v4.2h2.2c1.7 0 2.6-.7 2.6-2.1 0-1.4-.9-2.1-2.6-2.1h-2.2Z"/></svg>`
+  },
+  teams: {
+    name:'Microsoft Teams', color:'#6264A7',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="36" cy="13" r="5" fill="#7B83EB"/><rect x="28" y="19" width="16" height="18" rx="5" fill="#7B83EB"/><circle cx="24" cy="11" r="6" fill="#6264A7"/><rect x="13" y="17" width="24" height="24" rx="6" fill="#6264A7"/><rect x="4" y="15" width="22" height="27" rx="3" fill="#4B53BC"/><path fill="#fff" d="M9 21h14v3.5h-4.7V36h-4.5V24.5H9V21Z"/></svg>`
+  },
+  onedrive: {
+    name:'Microsoft OneDrive', color:'#0078D4',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#0364B8" d="M19.5 17.2A13 13 0 0 1 31 10c6.2 0 11.5 4.4 12.7 10.4A10.5 10.5 0 0 0 37 18c-1.1 0-2.1.2-3.1.5A14 14 0 0 0 19.5 17.2Z"/><path fill="#0078D4" d="M33.9 18.5a10.5 10.5 0 0 1 13.4 10.1c0 .8-.1 1.6-.3 2.4H18.4a9.4 9.4 0 0 1-1.4-5c0-3.5 1.9-6.8 5-8.5a14 14 0 0 1 11.9 1Z"/><path fill="#1490DF" d="M18.4 31H7.2A7.2 7.2 0 0 1 6 16.7a10.8 10.8 0 0 1 13.5.5A9.5 9.5 0 0 0 18.4 31Z"/></svg>`
+  },
+  github: {
+    name:'GitHub Desktop', color:'#F5F5F5',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="#181717"/><path fill="#fff" d="M24 8.2a16 16 0 0 0-5.1 31.2c.8.1 1.1-.3 1.1-.8v-3.1c-4.5 1-5.5-1.9-5.5-1.9-.7-1.9-1.8-2.4-1.8-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8a6.3 6.3 0 0 1 1.7-4.4c-.2-.4-.7-2.1.2-4.4 0 0 1.4-.5 4.6 1.7a15.8 15.8 0 0 1 8.4 0c3.2-2.2 4.6-1.7 4.6-1.7.9 2.3.4 4 .2 4.4A6.3 6.3 0 0 1 35 23c0 6.2-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .5.3.9 1.1.8A16 16 0 0 0 24 8.2Z"/></svg>`
+  },
+  explorer: {
+    name:'Explorador de Arquivos', color:'#F7C843',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#F5C443" d="M5 13a4 4 0 0 1 4-4h11l4 4h15a4 4 0 0 1 4 4v18a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V13Z"/><path fill="#FFD65A" d="M5 19h38v16a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V19Z"/><path fill="#E7A91A" d="M7 23h34l-3 14H10L7 23Z"/></svg>`
+  },
+  premiere: {
+    name:'Adobe Premiere Pro', color:'#9999FF',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="5" width="38" height="38" rx="7" fill="#00005B"/><rect x="8" y="8" width="32" height="32" rx="5" fill="none" stroke="#9999FF" stroke-width="2"/><path fill="#9999FF" d="M13 15h8.3c5 0 8 2.5 8 6.7 0 4.5-3.2 6.8-8.3 6.8h-2.8V34H13V15Zm5.2 4.2v5.2h2.6c2.2 0 3.4-.9 3.4-2.6 0-1.8-1.2-2.6-3.4-2.6h-2.6ZM31 20h4.5v2.2c.9-1.7 2.4-2.6 4.5-2.6v4.5c-2.8-.2-4.5 1.1-4.5 3.7V34H31V20Z"/></svg>`
+  },
+  photoshop: {
+    name:'Adobe Photoshop', color:'#31A8FF',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="5" width="38" height="38" rx="7" fill="#001E36"/><rect x="8" y="8" width="32" height="32" rx="5" fill="none" stroke="#31A8FF" stroke-width="2"/><path fill="#31A8FF" d="M12 15h8.2c5.2 0 8.2 2.6 8.2 7 0 4.6-3.1 7-8.4 7h-2.8v5H12V15Zm5.2 4.2v5.5h2.6c2.3 0 3.5-.9 3.5-2.7 0-1.9-1.2-2.8-3.5-2.8h-2.6ZM30.2 31c1.4.8 3 1.3 4.5 1.3 1.2 0 1.8-.4 1.8-1 0-.7-.5-.9-2.4-1.5-3-.9-4.5-2.2-4.5-4.5 0-3 2.5-5 6.4-5 1.9 0 3.7.4 5 1.1l-1.2 3.4a8.5 8.5 0 0 0-3.7-.9c-1.1 0-1.7.4-1.7 1 0 .6.5.9 2.5 1.5 3.1.9 4.4 2.3 4.4 4.5 0 3.1-2.4 5-6.7 5-2.2 0-4.3-.5-5.7-1.3l1.3-3.6Z"/></svg>`
+  },
+  steam: {
+    name:'Steam', color:'#1B2838',
+    svg:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="#171A21"/><circle cx="32" cy="16" r="7" fill="none" stroke="#fff" stroke-width="3"/><circle cx="32" cy="16" r="3" fill="#fff"/><path fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" d="m27 20-8.5 8.5-8-3.2"/><circle cx="17" cy="30" r="5.5" fill="none" stroke="#fff" stroke-width="3"/></svg>`
   }
 };
 
@@ -82,6 +122,16 @@ export function inferAppIcon(control = {}) {
     ['whatsapp', ['whatsapp']],
     ['youtube', ['youtube','youtu.be']],
     ['twitch', ['twitch']],
+    ['word', ['winword','microsoft word','word.exe','.docx']],
+    ['excel', ['excel.exe','microsoft excel','.xlsx']],
+    ['powerpoint', ['powerpnt','microsoft powerpoint','powerpoint','.pptx']],
+    ['teams', ['ms-teams','msteams','microsoft teams','teams.exe']],
+    ['onedrive', ['onedrive','microsoft onedrive']],
+    ['github', ['github desktop','githubdesktop','github.com']],
+    ['explorer', ['explorer.exe','explorador de arquivos','file explorer']],
+    ['premiere', ['premiere pro','adobe premiere','premiere.exe']],
+    ['photoshop', ['photoshop','adobe photoshop']],
+    ['steam', ['steam.exe','steam']],
     ['edge', ['msedge','microsoft edge','edge.exe']],
     ['chrome', ['chrome','google.com','browser','navegador']]
   ];

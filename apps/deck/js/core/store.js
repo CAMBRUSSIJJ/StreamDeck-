@@ -1,6 +1,7 @@
 import { clampVolume, normalizeKind } from './widgets.js';
 import { normalizeMacro } from './protocol.js';
 import { normalizeProfile } from './profiles.js';
+import { normalizeLayout, normalizeSavedLayouts } from './layout.js';
 
 const KEY = 'nexus.deck.v0.2';
 
@@ -8,10 +9,10 @@ const defaults = {
   activePageId: 'main',
   activeDeviceId: null,
   devices: [],
-  preferences: { accent: 'indigo', smartProfiles: true },
+  preferences: { accent: 'indigo', smartProfiles: true, savedLayouts: [] },
   pages: [
     {
-      id: 'main', name: 'Principal', icon: 'home', buttons: [
+      id: 'main', name: 'Principal', icon: 'home', layout: normalizeLayout({ preset:'minimal' }), buttons: [
         { id:'browser', kind:'button', label:'Navegador', icon:'◎', appIcon:'chrome', color:'#4285F4', size:'square', action:{type:'open_url', url:'https://www.google.com'} },
         { id:'obsidian', kind:'button', label:'Obsidian', icon:'◈', appIcon:'obsidian', color:'#8B5CF6', size:'square', action:{type:'open_url', url:'obsidian://open'} },
         { id:'mail', kind:'button', label:'E-mail', icon:'✉', appIcon:'gmail', color:'#EA4335', size:'square', action:{type:'open_url', url:'https://mail.google.com'} },
@@ -22,8 +23,8 @@ const defaults = {
         { id:'pc-status', kind:'status', label:'PC Principal', icon:'●', color:'#31b8ff', size:'wide' }
       ]
     },
-    { id:'work', name:'Trabalho', icon:'grid', buttons:[] },
-    { id:'media', name:'Mídia', icon:'music', buttons:[
+    { id:'work', name:'Trabalho', icon:'grid', layout: normalizeLayout({ preset:'compact' }), buttons:[] },
+    { id:'media', name:'Mídia', icon:'music', layout: normalizeLayout({ preset:'media' }), buttons:[
       { id:'media-page-center', kind:'media_panel', label:'Central de mídia', icon:'▶', color:'#42d98b', size:'large' },
       { id:'media-page-volume', kind:'volume', label:'Volume', icon:'🔊', color:'#ffb94b', size:'wide', value:50 },
       { id:'media-page-clock', kind:'clock', label:'Agora', icon:'◷', color:'#8b6cff', size:'wide' }
@@ -61,6 +62,7 @@ function normalizePage(page) {
     ...page,
     icon,
     profile: normalizeProfile(page.profile),
+    layout: normalizeLayout(page.layout),
     buttons: Array.isArray(page.buttons) ? page.buttons.map(normalizeControl) : []
   };
 }
@@ -87,6 +89,7 @@ export function loadState() {
     if (!parsed || !Array.isArray(parsed.pages) || !Array.isArray(parsed.devices)) return clone(defaults);
     const merged = { ...clone(defaults), ...parsed };
     merged.preferences = { ...clone(defaults.preferences), ...(parsed.preferences || {}) };
+    merged.preferences.savedLayouts = normalizeSavedLayouts(merged.preferences.savedLayouts);
     if (!allowedAccents.has(merged.preferences.accent)) merged.preferences.accent = 'indigo';
     merged.pages = parsed.pages.map(normalizePage);
     return migrateStarterWidgets(merged);
@@ -121,7 +124,7 @@ export function exportPortableState(state) {
   const payload = {
     format: 'nexus-deck-backup',
     version: 2,
-    appVersion: '1.1.0',
+    appVersion: '1.2.0',
     exportedAt: new Date().toISOString(),
     activePageId: state.activePageId,
     preferences: clone(state.preferences || defaults.preferences),
@@ -143,7 +146,12 @@ export function importPortableState(currentState, payload) {
   return {
     ...currentState,
     activePageId,
-    preferences: { ...(currentState.preferences || {}), accent, smartProfiles: payload.preferences?.smartProfiles !== false },
+    preferences: {
+      ...(currentState.preferences || {}),
+      accent,
+      smartProfiles: payload.preferences?.smartProfiles !== false,
+      savedLayouts: normalizeSavedLayouts(payload.preferences?.savedLayouts || currentState.preferences?.savedLayouts)
+    },
     pages
   };
 }

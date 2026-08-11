@@ -2,7 +2,7 @@
 
 ## Windows — caminho recomendado
 
-1. Execute `NexusDeck-Setup-v1.1.0.exe`.
+1. Execute `NexusDeck-Setup-v1.2.0.exe`.
 2. Confirme a instalação.
 3. O Companion será instalado em `%LOCALAPPDATA%\\Programs\\NexusDeck`.
 4. O Companion iniciará e abrirá `http://127.0.0.1:38473`.
@@ -31,7 +31,7 @@ Na primeira execução, permita o Companion no Firewall apenas para **redes priv
 
 ## Transferir layout Vercel ↔ Local
 
-Em Ajustes, use **Exportar deck** e **Importar deck**. A V1.1 usa Backup V2 com verificação de integridade e preview da quantidade de páginas, controles, macros e perfis. Dispositivos pareados permanecem no iPad e não são substituídos.
+Em Ajustes, use **Exportar deck** e **Importar deck**. A V1.2 usa Backup V2 com verificação de integridade e preview da quantidade de páginas, controles, macros e perfis. Dispositivos pareados permanecem no iPad e não são substituídos.
 
 ## Diagnóstico
 

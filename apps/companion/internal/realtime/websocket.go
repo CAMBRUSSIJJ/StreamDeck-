@@ -66,7 +66,7 @@ func dialWebSocket(rawURL string, timeout time.Duration) (*wsConn, error) {
 	req.Header.Set("Connection", "Upgrade")
 	req.Header.Set("Sec-WebSocket-Key", key)
 	req.Header.Set("Sec-WebSocket-Version", "13")
-	req.Header.Set("User-Agent", "NexusDeck-Companion/1.1.0")
+	req.Header.Set("User-Agent", "NexusDeck-Companion/1.2.0")
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "GET %s HTTP/1.1\r\nHost: %s\r\n", path, u.Host)
 	for k, values := range req.Header {

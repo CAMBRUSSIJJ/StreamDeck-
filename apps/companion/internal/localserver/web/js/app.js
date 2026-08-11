@@ -9,11 +9,13 @@ import { findMatchingPage, normalizeProfile, profileAppsText, profileLabel } fro
 import { integrationActionLabel, integrationCommand, integrationDescriptor, integrationServices, normalizeIntegrationAction } from './core/integrations.js';
 import { hydrateStaticIcons, iconSvg, semanticIcon } from './ui/icons.js';
 import { APP_ICON_OPTIONS, resolvedAppIcon } from './ui/app-icons.js';
+import { LAYOUT_PRESETS, applyPreset, layoutSummary, normalizeLayout, normalizeSavedLayouts } from './core/layout.js';
 
 const $ = selector => document.querySelector(selector);
 const els = {
-  grid: $('#deck-grid'), dock: $('#page-dock'), pageTitle: $('#page-title'), pageSummary: $('#page-summary'), addButton: $('#add-button'), editToggle: $('#edit-toggle'), editToggleLabel: $('#edit-toggle-label'), editBadge: $('#edit-badge'), editToolbar: $('#edit-toolbar'), pageManage: $('#page-manage'),
+  grid: $('#deck-grid'), dock: $('#page-dock'), pageTitle: $('#page-title'), pageSummary: $('#page-summary'), addButton: $('#add-button'), editToggle: $('#edit-toggle'), editToggleLabel: $('#edit-toggle-label'), editBadge: $('#edit-badge'), editToolbar: $('#edit-toolbar'), pageManage: $('#page-manage'), layoutOpen: $('#layout-open'),
   pageDialog: $('#page-dialog'), pageClose: $('#page-close'), pageList: $('#page-list'), pageCreate: $('#page-create'), newPageName: $('#new-page-name'),
+  layoutDialog: $('#layout-dialog'), layoutClose: $('#layout-close'), layoutCancel: $('#layout-cancel'), layoutSave: $('#layout-save'), layoutReset: $('#layout-reset'), layoutApplyAll: $('#layout-apply-all'), layoutPresetGrid: $('#layout-preset-grid'), layoutPageName: $('#layout-page-name'), layoutDraftSummary: $('#layout-draft-summary'), layoutDensity: $('#layout-density'), layoutColumns: $('#layout-columns'), layoutIconSize: $('#layout-icon-size'), layoutTextAlign: $('#layout-text-align'), layoutCardStyle: $('#layout-card-style'), layoutRadius: $('#layout-radius'), layoutRadiusValue: $('#layout-radius-value'), layoutDock: $('#layout-dock'), layoutHeader: $('#layout-header'), layoutTheme: $('#layout-theme'), savedLayoutList: $('#saved-layout-list'), savedLayoutName: $('#saved-layout-name'), savedLayoutSave: $('#saved-layout-save'),
   devicePill: $('#device-pill'), deviceName: $('#device-name'), deviceStatusText: $('#device-status-text'), deviceDialog: $('#device-dialog'), deviceList: $('#device-list'), deviceClose: $('#device-close'), pairCode: $('#pair-code'), pairStart: $('#pair-start'), pairProgress: $('#pair-progress'),
   settingsOpen: $('#settings-open'), settingsDialog: $('#settings-dialog'), settingsClose: $('#settings-close'), cloudStatus: $('#cloud-status'), localStatus: $('#local-status'), localUrl: $('#local-url'), resetData: $('#reset-data'), exportDeck: $('#export-deck'), importDeck: $('#import-deck'), importDeckFile: $('#import-deck-file'), accentPicker: $('#accent-picker'), smartProfilesToggle: $('#smart-profiles-toggle'), foregroundStatus: $('#foreground-status'), integrationObsStatus: $('#integration-obs-status'), integrationSpotifyStatus: $('#integration-spotify-status'), integrationDiscordStatus: $('#integration-discord-status'), integrationBrowserStatus: $('#integration-browser-status'), deckDiagnostic: $('#deck-diagnostic'), deckDiagnosticExport: $('#deck-diagnostic-export'), deckDiagnosticResult: $('#deck-diagnostic-result'), onboardingOpen: $('#onboarding-open'), onboardingDialog: $('#onboarding-dialog'), onboardingClose: $('#onboarding-close'), onboardingPrev: $('#onboarding-prev'), onboardingNext: $('#onboarding-next'), onboardingStepLabel: $('#onboarding-step-label'), onboardingProgressBar: $('#onboarding-progress-bar'),
   buttonDialog: $('#button-dialog'), buttonForm: $('#button-form'), buttonDialogTitle: $('#button-dialog-title'), btnKind: $('#btn-kind'), btnLabel: $('#btn-label'), btnIcon: $('#btn-icon'), btnAppIcon: $('#btn-app-icon'), btnColor: $('#btn-color'), btnSize: $('#btn-size'), btnActionType: $('#btn-action-type'), actionTypeLabel: $('#action-type-label'), actionSection: $('#action-section'), actionSectionTitle: $('#action-section-title'), actionFields: $('#action-fields'), deleteButton: $('#delete-button'), duplicateButton: $('#duplicate-button'), editorPreview: $('#editor-preview'), previewIcon: $('#preview-icon'), previewLabel: $('#preview-label'), previewSize: $('#preview-size'),
@@ -40,6 +42,8 @@ const ONBOARDING_KEY = 'nexus.deck.onboarding.v1';
 const ERROR_LOG_KEY = 'nexus.deck.errors.v1';
 let onboardingStep = 0;
 let lastDeckDiagnostic = null;
+let layoutEditingPageId = null;
+let layoutDraft = null;
 
 hydrateStaticIcons();
 for (const [value, label] of APP_ICON_OPTIONS.slice(2)) { const option=document.createElement('option'); option.value=value; option.textContent=label; els.btnAppIcon?.append(option); }
@@ -99,7 +103,7 @@ function buildDeckDiagnostic() {
   try { errors = JSON.parse(localStorage.getItem(ERROR_LOG_KEY) || '[]'); } catch {}
   add('Erros recentes', errors.length ? 'warn' : 'ok', errors.length ? `${errors.length} evento(s) registrado(s) neste iPad` : 'Nenhum erro de runtime registrado');
   return {
-    format:'nexus-deck-diagnostic', version:1, appVersion:'1.1.0', generatedAt:new Date().toISOString(),
+    format:'nexus-deck-diagnostic', version:1, appVersion:'1.2.0', generatedAt:new Date().toISOString(),
     localMode:Boolean(localConfig?.configured), localUrl:localConfig?.localUrl || null,
     activeDevice:device ? { name:device.name, platform:device.platform, transport:device.transport } : null,
     checks, errors:errors.slice(-10)
@@ -140,11 +144,28 @@ function finishOnboarding() {
 function currentPage() { return state.pages.find(p => p.id === state.activePageId) || state.pages[0]; }
 function activeDevice() { return state.devices.find(d => d.id === state.activeDeviceId) || state.devices[0] || null; }
 function persist() { saveState(state); }
+function applyLayoutToDocument(input = null) {
+  const layout = normalizeLayout(input || currentPage()?.layout);
+  const body = document.body;
+  body.dataset.layout = layout.preset;
+  body.dataset.density = layout.density;
+  body.dataset.iconSize = layout.iconSize;
+  body.dataset.textAlign = layout.textAlign;
+  body.dataset.cardStyle = layout.cardStyle;
+  body.dataset.dock = layout.dock;
+  body.dataset.header = layout.header;
+  body.dataset.theme = layout.theme;
+  body.style.setProperty('--layout-card-radius', `${layout.radius}px`);
+  els.grid?.style.setProperty('--layout-columns', String(layout.columns));
+  return layout;
+}
+
 function applyAppearance() {
   const accent = state.preferences?.accent || 'indigo';
   document.body.dataset.accent = accent;
   els.accentPicker?.querySelectorAll('[data-accent]').forEach(button => button.classList.toggle('active', button.dataset.accent === accent));
   if (els.smartProfilesToggle) els.smartProfilesToggle.checked = state.preferences?.smartProfiles !== false;
+  applyLayoutToDocument(layoutDraft && els.layoutDialog?.open ? layoutDraft : currentPage()?.layout);
 }
 
 function render() {
@@ -170,7 +191,8 @@ function renderPages() {
   els.pageTitle.textContent = page.name;
   const count = page.buttons.length;
   const auto = autoProfilePageId === page.id ? `Perfil automático · ${profileLabel(page)}` : '';
-  els.pageSummary.textContent = auto || (count ? `${count} ${count === 1 ? 'controle' : 'controles'} · toque para executar` : 'Um espaço limpo para seus próximos controles.');
+  const layoutName = LAYOUT_PRESETS[normalizeLayout(page.layout).preset]?.name || 'Layout personalizado';
+  els.pageSummary.textContent = auto || (count ? `${count} ${count === 1 ? 'controle' : 'controles'} · ${layoutName}` : `${layoutName} · pronto para personalizar`);
   els.dock.replaceChildren(...state.pages.map(p => {
     const b = document.createElement('button');
     b.className = `page-tab ${p.id === page.id ? 'active' : ''} ${p.profile?.enabled ? 'smart' : ''}`.trim();
@@ -231,6 +253,123 @@ function applySmartProfile(status) {
 }
 
 
+
+function layoutTargetPage() {
+  return state.pages.find(page => page.id === layoutEditingPageId) || currentPage();
+}
+
+function fillLayoutControls() {
+  if (!layoutDraft) return;
+  const layout = normalizeLayout(layoutDraft);
+  layoutDraft = layout;
+  els.layoutDensity.value = layout.density;
+  els.layoutColumns.value = String(layout.columns);
+  els.layoutIconSize.value = layout.iconSize;
+  els.layoutTextAlign.value = layout.textAlign;
+  els.layoutCardStyle.value = layout.cardStyle;
+  els.layoutRadius.value = String(layout.radius);
+  els.layoutRadiusValue.textContent = `${layout.radius} px`;
+  els.layoutDock.value = layout.dock;
+  els.layoutHeader.value = layout.header;
+  els.layoutTheme.value = layout.theme;
+  els.layoutDraftSummary.textContent = layoutSummary(layout);
+  els.layoutPresetGrid.querySelectorAll('[data-layout-preset]').forEach(button => button.classList.toggle('active', button.dataset.layoutPreset === layout.preset));
+}
+
+function renderLayoutPresets() {
+  els.layoutPresetGrid.replaceChildren(...Object.values(LAYOUT_PRESETS).map(preset => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'layout-preset-card';
+    button.dataset.layoutPreset = preset.id;
+    button.setAttribute('role','radio');
+    button.innerHTML = `<span class="layout-preset-preview preset-${preset.id}"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="layout-preset-copy"><strong></strong><small></small></span><span class="layout-preset-check">✓</span>`;
+    button.querySelector('strong').textContent = preset.name;
+    button.querySelector('small').textContent = preset.description;
+    button.addEventListener('click', () => {
+      layoutDraft = applyPreset(preset.id, layoutDraft);
+      fillLayoutControls(); applyLayoutToDocument(layoutDraft);
+    });
+    return button;
+  }));
+}
+
+function renderSavedLayouts() {
+  const saved = normalizeSavedLayouts(state.preferences?.savedLayouts);
+  state.preferences = { ...(state.preferences || {}), savedLayouts:saved };
+  if (!saved.length) {
+    const empty = document.createElement('div'); empty.className='saved-layout-empty'; empty.textContent='Nenhum layout salvo ainda.';
+    els.savedLayoutList.replaceChildren(empty); return;
+  }
+  els.savedLayoutList.replaceChildren(...saved.map(item => {
+    const row=document.createElement('div'); row.className='saved-layout-row';
+    const copy=document.createElement('div'); const strong=document.createElement('strong'); strong.textContent=item.name; const small=document.createElement('small'); small.textContent=layoutSummary(item.layout); copy.append(strong,small);
+    const actions=document.createElement('div');
+    const use=document.createElement('button'); use.type='button'; use.className='mini-text-button'; use.textContent='Aplicar';
+    const remove=document.createElement('button'); remove.type='button'; remove.className='mini-text-button danger'; remove.textContent='Excluir';
+    use.addEventListener('click',()=>{ layoutDraft=normalizeLayout(item.layout); fillLayoutControls(); applyLayoutToDocument(layoutDraft); toast(`Layout “${item.name}” aplicado na prévia.`, 'success'); });
+    remove.addEventListener('click',()=>{ state.preferences.savedLayouts=saved.filter(savedItem=>savedItem.id!==item.id); persist(); renderSavedLayouts(); });
+    actions.append(use,remove); row.append(copy,actions); return row;
+  }));
+}
+
+function openLayoutEditor(pageId = state.activePageId) {
+  const page = state.pages.find(item => item.id === pageId) || currentPage();
+  layoutEditingPageId = page.id;
+  layoutDraft = normalizeLayout(page.layout);
+  els.layoutPageName.textContent = page.name;
+  renderLayoutPresets(); renderSavedLayouts(); fillLayoutControls();
+  applyLayoutToDocument(layoutDraft);
+  if (!els.layoutDialog.open) els.layoutDialog.showModal();
+}
+
+function cancelLayoutEditor() {
+  layoutDraft = null; layoutEditingPageId = null;
+  if (els.layoutDialog.open) els.layoutDialog.close();
+  applyAppearance();
+}
+
+function updateLayoutDraftFromControls() {
+  if (!layoutDraft) return;
+  layoutDraft = normalizeLayout({
+    ...layoutDraft,
+    density:els.layoutDensity.value,
+    columns:Number(els.layoutColumns.value),
+    iconSize:els.layoutIconSize.value,
+    textAlign:els.layoutTextAlign.value,
+    cardStyle:els.layoutCardStyle.value,
+    radius:Number(els.layoutRadius.value),
+    dock:els.layoutDock.value,
+    header:els.layoutHeader.value,
+    theme:els.layoutTheme.value
+  });
+  fillLayoutControls(); applyLayoutToDocument(layoutDraft);
+}
+
+function saveLayoutEditor() {
+  const page=layoutTargetPage(); if (!page || !layoutDraft) return;
+  page.layout=normalizeLayout(layoutDraft); persist();
+  layoutDraft=null; layoutEditingPageId=null; els.layoutDialog.close(); render(); toast('Layout da página salvo.', 'success');
+}
+
+function applyLayoutToAllPages() {
+  if (!layoutDraft) return;
+  if (!confirm('Aplicar esta composição visual a todas as páginas do deck?')) return;
+  state.pages.forEach(page => { page.layout=normalizeLayout(layoutDraft); }); persist();
+  layoutDraft=null; layoutEditingPageId=null; els.layoutDialog.close(); render(); toast('Layout aplicado em todas as páginas.', 'success');
+}
+
+function saveCustomLayout() {
+  if (!layoutDraft) return;
+  const name=els.savedLayoutName.value.trim();
+  if (!name) { toast('Dê um nome para o layout.', 'error'); return; }
+  const current=normalizeSavedLayouts(state.preferences?.savedLayouts);
+  const duplicate=current.find(item => item.name.toLocaleLowerCase('pt-BR') === name.toLocaleLowerCase('pt-BR'));
+  const record={ id:duplicate?.id || randomId(8), name, layout:normalizeLayout(layoutDraft) };
+  state.preferences={ ...(state.preferences||{}), savedLayouts:duplicate ? current.map(item=>item.id===duplicate.id?record:item) : [...current,record].slice(-12) };
+  els.savedLayoutName.value=''; persist(); renderSavedLayouts(); toast(`Layout “${name}” salvo.`, 'success');
+}
+
 function renderPageManager() {
   els.pageList.replaceChildren(...state.pages.map((page, index) => {
     const row = document.createElement('div');
@@ -250,7 +389,7 @@ function renderPageManager() {
     name.value = page.name;
     name.setAttribute('aria-label', `Nome da página ${page.name}`);
     const meta = document.createElement('span');
-    meta.textContent = `${page.buttons.length} ${page.buttons.length === 1 ? 'controle' : 'controles'}${page.id === state.activePageId ? ' · ativa' : ''}`;
+    meta.textContent = `${page.buttons.length} ${page.buttons.length === 1 ? 'controle' : 'controles'} · ${LAYOUT_PRESETS[normalizeLayout(page.layout).preset]?.name || 'Layout'}${page.id === state.activePageId ? ' · ativa' : ''}`;
     copy.append(name, meta);
     identity.append(iconWrap, copy);
 
@@ -296,12 +435,14 @@ function renderPageManager() {
     activate.type = 'button';
     activate.className = `page-use-button ${page.id === state.activePageId ? 'active' : ''}`;
     activate.textContent = page.id === state.activePageId ? 'Ativa' : 'Usar';
+    const appearance = miniIconButton('grid', 'Editar layout');
     const up = miniIconButton('chevronUp', 'Mover para cima');
     const down = miniIconButton('chevronDown', 'Mover para baixo');
     const duplicate = miniIconButton('copy', 'Duplicar página');
     const remove = miniIconButton('trash', 'Excluir página', 'danger-mini');
 
     activate.addEventListener('click', () => { selectPageManually(page.id); renderPageManager(); });
+    appearance.addEventListener('click', () => { els.pageDialog.close(); openLayoutEditor(page.id); });
     name.addEventListener('change', () => {
       const value = name.value.trim();
       if (!value) { name.value = page.name; toast('A página precisa ter um nome.', 'error'); return; }
@@ -328,7 +469,7 @@ function renderPageManager() {
       persist(); render(); renderPageManager(); toast('Página removida.');
     });
 
-    controls.append(iconSelect, activate, up, down, duplicate, remove);
+    controls.append(iconSelect, activate, appearance, up, down, duplicate, remove);
     row.append(identity, profileEditor, controls);
     return row;
   }));
@@ -347,7 +488,7 @@ function miniIconButton(iconName, label, extraClass = '') {
 function createPage() {
   const requested = els.newPageName.value.trim();
   const name = requested ? uniquePageName(state.pages, requested) : uniquePageName(state.pages, 'Nova página');
-  const page = { id: randomId(7), name, icon:'grid', profile:{ enabled:false, apps:[] }, buttons:[] };
+  const page = { id: randomId(7), name, icon:'grid', profile:{ enabled:false, apps:[] }, layout:normalizeLayout({ preset:'minimal' }), buttons:[] };
   state.pages.push(page);
   state.activePageId = page.id; manualPageId = page.id; autoProfilePageId = null;
   els.newPageName.value = '';
@@ -1247,6 +1388,16 @@ els.duplicateButton.addEventListener('click', () => {
   page.buttons.splice(index + 1, 0, copy);
   persist(); render(); els.buttonDialog.close(); toast('Controle duplicado.', 'success');
 });
+els.layoutOpen?.addEventListener('click', () => openLayoutEditor(state.activePageId));
+els.layoutClose?.addEventListener('click', cancelLayoutEditor);
+els.layoutDialog?.addEventListener('close', () => { if (layoutDraft) { layoutDraft=null; layoutEditingPageId=null; applyAppearance(); } });
+els.layoutCancel?.addEventListener('click', cancelLayoutEditor);
+els.layoutSave?.addEventListener('click', saveLayoutEditor);
+els.layoutApplyAll?.addEventListener('click', applyLayoutToAllPages);
+els.layoutReset?.addEventListener('click', () => { if (!layoutDraft) return; layoutDraft=applyPreset(layoutDraft.preset); fillLayoutControls(); applyLayoutToDocument(layoutDraft); });
+els.savedLayoutSave?.addEventListener('click', saveCustomLayout);
+[els.layoutDensity,els.layoutColumns,els.layoutIconSize,els.layoutTextAlign,els.layoutCardStyle,els.layoutDock,els.layoutHeader,els.layoutTheme].forEach(input => input?.addEventListener('change', updateLayoutDraftFromControls));
+els.layoutRadius?.addEventListener('input', updateLayoutDraftFromControls);
 els.pageManage.addEventListener('click', () => { renderPageManager(); els.pageDialog.showModal(); });
 els.pageClose.addEventListener('click', () => els.pageDialog.close());
 els.pageCreate.addEventListener('click', createPage);

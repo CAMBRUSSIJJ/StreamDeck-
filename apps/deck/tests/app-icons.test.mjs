@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { APP_ICON_OPTIONS, appIconSvg, inferAppIcon, resolvedAppIcon } from '../js/ui/app-icons.js';
 
-test('biblioteca V1.1 expõe ícones profissionais principais', () => {
+test('biblioteca V1.2 expõe ícones profissionais principais', () => {
   const values = new Set(APP_ICON_OPTIONS.map(([value]) => value));
-  for (const id of ['chrome','obsidian','spotify','discord','obs','vscode','notion','gmail','outlook','whatsapp','youtube','twitch']) {
+  for (const id of ['chrome','obsidian','spotify','discord','obs','vscode','notion','gmail','outlook','whatsapp','youtube','twitch','word','excel','powerpoint','teams','onedrive','github','explorer','premiere','photoshop','steam']) {
     assert.ok(values.has(id), `ícone ausente: ${id}`);
     assert.match(appIconSvg(id), /^<svg/);
   }
@@ -15,6 +15,8 @@ test('detecção automática reconhece aplicativos por nome, URL e executável',
   assert.equal(inferAppIcon({ label:'Notas', action:{ type:'launch_app', path:'C:\\Apps\\Obsidian.exe' } }), 'obsidian');
   assert.equal(inferAppIcon({ label:'E-mail', action:{ type:'open_url', url:'https://mail.google.com' } }), 'gmail');
   assert.equal(inferAppIcon({ label:'Editor', action:{ type:'launch_app', path:'C:\\Users\\me\\Code.exe' } }), 'vscode');
+  assert.equal(inferAppIcon({ label:'Planilha', action:{ type:'launch_app', path:'C:\\Program Files\\Microsoft Office\\EXCEL.EXE' } }), 'excel');
+  assert.equal(inferAppIcon({ label:'Arquivos', action:{ type:'launch_app', path:'C:\\Windows\\explorer.exe' } }), 'explorer');
 });
 
 test('seleção manual vence a detecção automática e none desativa', () => {

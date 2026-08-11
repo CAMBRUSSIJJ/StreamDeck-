@@ -1,22 +1,41 @@
-# Nexus Deck v1.1.0 — Nexus Pro Layout
+# Nexus Deck v1.2.0 — Layout Engine
 
-Transforme o iPad em uma superfície de controle modular para Windows. A V1.1 mantém toda a fundação estável da V1.0 e concentra a evolução em **layout, identidade visual e reconhecimento imediato dos aplicativos**.
+Transforme o iPad em uma superfície de controle modular para Windows. A V1.2 preserva a fundação estável do Nexus e adiciona um **sistema visual por página**, com presets profissionais, temas, densidades e composição ajustável.
 
-## V1.1 — foco 100% visual
+## V1.2 — Layout Engine
 
-- Direção visual **Nexus Pro**: graphite escuro, superfícies sólidas, contraste controlado e menos efeitos decorativos.
-- Grid mais compacto para aproveitar melhor o iPad em paisagem.
-- Cards mais baixos, táteis e consistentes, sem glow/gradientes excessivos.
-- Topbar, dock, modais, botões e editor redesenhados com hierarquia mais clara.
-- Biblioteca vetorial embutida de ícones de aplicativos: Chrome, Edge, Obsidian, Spotify, Discord, OBS Studio, VS Code, Notion, Gmail, Outlook, WhatsApp, YouTube e Twitch.
-- Detecção automática de ícone por nome do controle, URL, caminho do executável e integração.
-- Seleção manual de ícone no editor, com opção **Automático** ou **Sem ícone de app**.
-- Preview do editor exibe o mesmo ícone de aplicativo que aparecerá no deck.
-- Compatibilidade com controles e backups das versões anteriores.
+Cada página pode ter uma identidade própria sem alterar seus controles, macros ou integrações.
+
+Presets incluídos:
+
+- **Minimal Pro** — limpo e equilibrado para produtividade.
+- **Control Center** — widgets e status em destaque.
+- **Compact Grid** — mais ações por tela.
+- **Focus** — poucos controles grandes para rotinas importantes.
+- **Dashboard** — mistura aplicativos, status e informação.
+- **Media Console** — composição para OBS, Spotify, Discord e áudio.
+
+Ajustes por página:
+
+- 3 a 8 colunas;
+- densidade compacta, equilibrada ou espaçosa;
+- ícones pequenos, médios ou grandes;
+- texto à esquerda ou centralizado;
+- cards sólido, elevado, outline ou flat;
+- raio dos cards de 8 a 28 px;
+- dock oculto, minimal, compacto ou completo;
+- cabeçalho oculto, compacto ou completo;
+- temas Graphite, Midnight, Slate, Ivory e OLED Black.
+
+Também é possível salvar até 12 layouts personalizados e reutilizá-los em outras páginas, além de aplicar uma composição a todo o deck.
+
+## Biblioteca de aplicativos
+
+A biblioteca visual agora inclui Chrome, Edge, Obsidian, Spotify, Discord, OBS Studio, VS Code, Notion, Gmail, Outlook, WhatsApp, YouTube, Twitch, Word, Excel, PowerPoint, Teams, OneDrive, GitHub Desktop, Explorador de Arquivos, Adobe Premiere Pro, Photoshop e Steam.
 
 ## Fundação preservada
 
-A V1.1 não remove recursos da V1.0: Nexus Local, pareamento, widgets, macros, perfis inteligentes, integrações profissionais, diagnóstico, backup V2, tray do Windows e instalador continuam disponíveis.
+Nexus Local, widgets, macros, perfis inteligentes, integrações profissionais, backup V2, diagnóstico, tray do Windows e instalador continuam disponíveis.
 
 ## Vercel
 
@@ -25,9 +44,7 @@ A V1.1 não remove recursos da V1.0: Nexus Local, pareamento, widgets, macros, p
 - **Build Command:** desativado
 - **Output Directory:** desativado
 
-Para controle real pela LAN, abra no iPad o endereço exibido pelo Nexus Companion.
-
-## Testes
+## Qualidade
 
 ```bash
 npm run check

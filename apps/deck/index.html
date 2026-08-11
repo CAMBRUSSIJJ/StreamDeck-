@@ -77,6 +77,7 @@
           <span>Toque em qualquer item para editar aparência, tamanho, tipo e comportamento.</span>
         </div>
         <span class="edit-toolbar-spacer"></span>
+        <button id="layout-open" class="toolbar-action" type="button"><span class="ui-icon" data-icon="grid"></span> Layout</button>
         <button id="page-manage" class="toolbar-action" type="button"><span class="ui-icon" data-icon="layers"></span> Páginas</button>
         <span class="edit-toolbar-hint">Arraste pelo ⋮ para reorganizar</span>
       </section>
@@ -198,6 +199,92 @@
     </div>
   </dialog>
 
+  <dialog id="layout-dialog" class="panel-dialog layout-dialog wide-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <div class="section-kicker">LAYOUT ENGINE</div>
+          <h2>Aparência da página</h2>
+          <p>Escolha uma composição profissional e refine densidade, cards, navegação e tema.</p>
+        </div>
+        <button id="layout-close" class="icon-button dialog-close" type="button" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
+      </div>
+
+      <section class="layout-editor-section">
+        <div class="layout-section-head">
+          <div><strong>Presets profissionais</strong><span id="layout-page-name">Página atual</span></div>
+          <span id="layout-draft-summary" class="layout-draft-summary">Minimal Pro</span>
+        </div>
+        <div id="layout-preset-grid" class="layout-preset-grid" role="radiogroup" aria-label="Presets de layout"></div>
+      </section>
+
+      <section class="layout-editor-section">
+        <div class="layout-section-head"><div><strong>Composição</strong><span>Ajustes finos desta página</span></div></div>
+        <div class="layout-controls-grid">
+          <label>Densidade
+            <select id="layout-density">
+              <option value="compact">Compacta</option>
+              <option value="comfortable">Equilibrada</option>
+              <option value="spacious">Espaçosa</option>
+            </select>
+          </label>
+          <label>Colunas
+            <select id="layout-columns">
+              <option value="3">3 colunas</option><option value="4">4 colunas</option><option value="5">5 colunas</option>
+              <option value="6">6 colunas</option><option value="7">7 colunas</option><option value="8">8 colunas</option>
+            </select>
+          </label>
+          <label>Ícones
+            <select id="layout-icon-size">
+              <option value="small">Pequenos</option><option value="medium">Médios</option><option value="large">Grandes</option>
+            </select>
+          </label>
+          <label>Texto
+            <select id="layout-text-align"><option value="left">Alinhado à esquerda</option><option value="center">Centralizado</option></select>
+          </label>
+          <label>Cards
+            <select id="layout-card-style">
+              <option value="solid">Sólido</option><option value="elevated">Elevado</option><option value="outline">Outline</option><option value="flat">Flat</option>
+            </select>
+          </label>
+          <label>Tema
+            <select id="layout-theme">
+              <option value="graphite">Graphite</option><option value="midnight">Midnight</option><option value="slate">Slate</option><option value="ivory">Ivory</option><option value="oled">OLED Black</option>
+            </select>
+          </label>
+          <label>Dock
+            <select id="layout-dock">
+              <option value="hidden">Oculto</option><option value="minimal">Minimal</option><option value="compact">Compacto</option><option value="full">Completo</option>
+            </select>
+          </label>
+          <label>Cabeçalho
+            <select id="layout-header"><option value="hidden">Oculto</option><option value="compact">Compacto</option><option value="full">Completo</option></select>
+          </label>
+          <label class="layout-radius-control">Raio dos cards <strong id="layout-radius-value">16 px</strong>
+            <input id="layout-radius" type="range" min="8" max="28" step="1" value="16" />
+          </label>
+        </div>
+      </section>
+
+      <section class="layout-editor-section saved-layouts-section">
+        <div class="layout-section-head"><div><strong>Meus layouts</strong><span>Salve uma composição para reutilizar em outras páginas.</span></div></div>
+        <div id="saved-layout-list" class="saved-layout-list"></div>
+        <div class="saved-layout-create">
+          <input id="saved-layout-name" maxlength="32" placeholder="Ex.: Trabalho compacto" />
+          <button id="saved-layout-save" class="ghost-button" type="button">Salvar preset</button>
+        </div>
+      </section>
+
+      <div class="dialog-actions layout-dialog-actions">
+        <button id="layout-reset" class="ghost-button" type="button">Restaurar preset</button>
+        <button id="layout-apply-all" class="ghost-button" type="button">Aplicar em todas</button>
+        <span class="spacer"></span>
+        <button id="layout-cancel" class="ghost-button" type="button">Cancelar</button>
+        <button id="layout-save" class="primary-button" type="button">Salvar layout</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="device-dialog" class="panel-dialog wide-dialog">
     <div class="dialog-content">
       <div class="dialog-header">
@@ -236,7 +323,7 @@
       </div>
 
       <section class="settings-section">
-        <div class="settings-heading"><div><h3>Visual Nexus Pro</h3><p>Interface mais sóbria, compacta e centrada nos aplicativos.</p></div></div>
+        <div class="settings-heading"><div><h3>Sistema visual</h3><p>A cor de destaque trabalha junto dos temas e layouts configurados em cada página.</p></div></div>
         <div id="accent-picker" class="accent-picker" role="radiogroup" aria-label="Cor de destaque">
           <button class="accent-swatch swatch-indigo" data-accent="indigo" type="button" aria-label="Índigo"></button>
           <button class="accent-swatch swatch-cyan" data-accent="cyan" type="button" aria-label="Ciano"></button>
@@ -272,7 +359,7 @@
           <div><span>Endereço local</span><strong id="local-url">—</strong></div>
           <div><span>Cloud Relay</span><strong id="cloud-status">Verificando…</strong></div>
           <div><span>Protocolo</span><strong>v1 · AES-256-GCM</strong></div>
-          <div><span>Interface</span><strong>V1.1.0 · Nexus Pro</strong></div>
+          <div><span>Interface</span><strong>V1.2.0 · Layout Engine</strong></div>
         </div>
         <div class="settings-actions-row diagnostic-actions-row">
           <button id="deck-diagnostic" class="ghost-button" type="button">Diagnóstico rápido</button>
@@ -306,7 +393,7 @@
     <div class="dialog-content">
       <div class="onboarding-top">
         <div class="brand-mark onboarding-mark" aria-hidden="true"><span></span><span></span></div>
-        <div><div class="section-kicker">NEXUS DECK V1.1</div><h2>Seu painel está pronto.</h2></div>
+        <div><div class="section-kicker">NEXUS DECK V1.2</div><h2>Seu painel está pronto.</h2></div>
         <button id="onboarding-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
       </div>
       <div class="onboarding-progress"><span id="onboarding-progress-bar"></span></div>
