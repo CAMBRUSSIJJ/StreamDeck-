@@ -18,7 +18,9 @@ export const INTEGRATION_CATALOG = {
       set_volume:{label:'Definir volume',params:[{key:'volumePercent',label:'Volume (%)',type:'number',min:0,max:100,step:5,placeholder:'50'}]},
       seek:{label:'Ir para posição',params:[{key:'positionMs',label:'Posição (ms)',type:'number',min:0,max:86400000,step:1000,placeholder:'30000'}]},
       shuffle_on:{label:'Ativar aleatório'}, shuffle_off:{label:'Desativar aleatório'},
-      repeat_track:{label:'Repetir faixa'}, repeat_context:{label:'Repetir contexto'}, repeat_off:{label:'Desativar repetição'}
+      repeat_track:{label:'Repetir faixa'}, repeat_context:{label:'Repetir contexto'}, repeat_off:{label:'Desativar repetição'},
+      transfer_playback:{label:'Trocar dispositivo',hidden:true,params:[{key:'deviceId',label:'Dispositivo',type:'text'}]},
+      focus_snapshot:{label:'Sincronizar App Focus',hidden:true}
     }
   },
   discord: {

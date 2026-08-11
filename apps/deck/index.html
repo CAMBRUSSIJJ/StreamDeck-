@@ -162,6 +162,7 @@
             <option value="media">Controle de mídia</option>
             <option value="system">Sistema</option>
             <option value="integration">Integração</option>
+            <option value="focus">App Focus</option>
           </select>
         </label>
         <div id="action-fields" class="action-fields"></div>
@@ -179,6 +180,79 @@
         <button id="save-button" class="primary-button" value="default">Salvar controle</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="app-focus-dialog" class="app-focus-dialog" aria-label="App Focus">
+    <section class="app-focus-shell spotify-focus-shell">
+      <header class="app-focus-header">
+        <div class="app-focus-brand">
+          <span class="spotify-brand-dot" aria-hidden="true"></span>
+          <div><span class="section-kicker">APP FOCUS</span><strong>Spotify</strong></div>
+        </div>
+        <div class="app-focus-header-actions">
+          <span id="spotify-focus-sync" class="app-focus-sync">Sincronizando…</span>
+          <button id="app-focus-close" class="icon-button" type="button" aria-label="Voltar ao deck"><span class="ui-icon" data-icon="x"></span></button>
+        </div>
+      </header>
+
+      <div class="spotify-focus-layout">
+        <main class="spotify-focus-player">
+          <div class="spotify-artwork-wrap">
+            <img id="spotify-focus-artwork" class="spotify-focus-artwork hidden" alt="Capa do conteúdo atual no Spotify" referrerpolicy="no-referrer" />
+            <div id="spotify-focus-artwork-placeholder" class="spotify-focus-artwork-placeholder"><span>♪</span></div>
+          </div>
+
+          <section class="spotify-track-panel">
+            <div class="spotify-track-copy">
+              <span class="section-kicker">TOCANDO AGORA</span>
+              <h2 id="spotify-focus-track">Spotify</h2>
+              <p id="spotify-focus-artist">Nenhuma reprodução ativa</p>
+              <span id="spotify-focus-album" class="spotify-focus-album"></span>
+            </div>
+
+            <div class="spotify-progress-block">
+              <input id="spotify-focus-progress" class="spotify-focus-progress" type="range" min="0" max="1000" step="1" value="0" aria-label="Posição da música" />
+              <div class="spotify-progress-time"><span id="spotify-focus-elapsed">0:00</span><span id="spotify-focus-duration">0:00</span></div>
+            </div>
+
+            <div class="spotify-transport" aria-label="Controles do Spotify">
+              <button id="spotify-focus-shuffle" class="spotify-tool" type="button" aria-label="Aleatório">⇄</button>
+              <button id="spotify-focus-previous" class="spotify-transport-button" type="button" aria-label="Faixa anterior">◀</button>
+              <button id="spotify-focus-play" class="spotify-play-button" type="button" aria-label="Reproduzir ou pausar">▶</button>
+              <button id="spotify-focus-next" class="spotify-transport-button" type="button" aria-label="Próxima faixa">▶</button>
+              <button id="spotify-focus-repeat" class="spotify-tool" type="button" aria-label="Repetição">↻</button>
+            </div>
+
+            <div class="spotify-focus-controls">
+              <label class="spotify-volume-row">
+                <span>Volume</span>
+                <input id="spotify-focus-volume" type="range" min="0" max="100" step="1" value="50" />
+                <strong id="spotify-focus-volume-value">50%</strong>
+              </label>
+              <label class="spotify-device-row">
+                <span>Dispositivo</span>
+                <select id="spotify-focus-device" aria-label="Dispositivo Spotify"><option value="">Nenhum dispositivo</option></select>
+              </label>
+            </div>
+
+            <div class="spotify-focus-footer">
+              <span>Conteúdo e reprodução fornecidos pelo Spotify.</span>
+              <button id="spotify-focus-open" class="spotify-open-button" type="button">Abrir no Spotify ↗</button>
+            </div>
+          </section>
+        </main>
+
+        <aside class="spotify-queue-panel">
+          <div class="spotify-queue-head">
+            <div><span class="section-kicker">A SEGUIR</span><strong>Fila</strong></div>
+            <span id="spotify-focus-device-meta">—</span>
+          </div>
+          <div id="spotify-focus-queue" class="spotify-focus-queue">
+            <div class="spotify-queue-empty">A fila aparecerá quando o Spotify estiver reproduzindo.</div>
+          </div>
+        </aside>
+      </div>
+    </section>
   </dialog>
 
   <dialog id="page-dialog" class="panel-dialog wide-dialog">
@@ -414,7 +488,7 @@
           <div><span>Endereço local</span><strong id="local-url">—</strong></div>
           <div><span>Cloud Relay</span><strong id="cloud-status">Verificando…</strong></div>
           <div><span>Protocolo</span><strong>v1 · AES-256-GCM</strong></div>
-          <div><span>Interface</span><strong>V1.5.0 · Companion Sync + iPad Immersivo</strong></div>
+          <div><span>Interface</span><strong>V1.7.0 · App Focus</strong></div>
         </div>
         <div class="settings-actions-row diagnostic-actions-row">
           <button id="deck-diagnostic" class="ghost-button" type="button">Diagnóstico rápido</button>
@@ -448,7 +522,7 @@
     <div class="dialog-content">
       <div class="onboarding-top">
         <div class="brand-mark onboarding-mark" aria-hidden="true"><span></span><span></span></div>
-        <div><div class="section-kicker">NEXUS DECK V1.5</div><h2>Seu control deck está pronto.</h2></div>
+        <div><div class="section-kicker">NEXUS DECK V1.7</div><h2>App Focus pronto para uso.</h2></div>
         <button id="onboarding-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
       </div>
       <div class="onboarding-progress"><span id="onboarding-progress-bar"></span></div>

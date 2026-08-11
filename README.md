@@ -1,19 +1,24 @@
-# Nexus Deck V1.5.0
+# Nexus Deck V1.7.0
 
 Nexus Deck transforma o iPad em uma superfície de controle para Windows com foco **Local First**.
 
-## V1.5 — Companion Sync + iPad Immersivo
+## App Focus
 
-- sincronização bidirecional iPad ↔ Companion;
-- status vivo do computador, aplicativo em primeiro plano e integrações;
-- leitura do volume/mute reais do Windows via Core Audio;
-- slider com ajuste de volume absoluto pelo Companion;
-- Spotify Now Playing quando a integração estiver autorizada;
-- confirmação visual ENVIANDO / OK / ERRO nas teclas;
-- polling local mais rápido e retorno de estado junto do ACK;
-- botão de tela cheia com fallback para instalação na Tela de Início;
-- modo standalone/imersivo otimizado para iPad;
-- Supabase continua opcional.
+A V1.7 introduz uma camada de foco por aplicativo. O primeiro módulo completo é o **Spotify Focus**, com capa oficial da faixa, música, artista, álbum, progresso, play/pause, faixa anterior/próxima, shuffle, repetição, volume, seleção de dispositivo Spotify Connect e fila. O deck continua independente: você pode criar uma tecla com ação **App Focus → Spotify Focus** para abrir essa experiência em tela dedicada.
+
+A estrutura foi criada para receber novos módulos de foco sem misturar lógica de UI com o protocolo do Windows. OBS Studio e Windows Media ficam preparados como próximos adaptadores de foco.
+
+## V1.7 — App Focus
+
+- nova ação **App Focus** no editor;
+- Spotify Focus em tela dedicada e responsiva no iPad;
+- capa oficial, faixa, artista, álbum, duração e progresso;
+- play/pause, anterior, próxima, seek, volume, shuffle e repetição;
+- fila carregada sob demanda e seleção de dispositivo Spotify Connect;
+- tecla Spotify Focus mostra faixa/artista ao vivo no deck;
+- sincronização detalhada acontece somente enquanto o foco está aberto;
+- base genérica pronta para novos módulos de foco;
+- recursos de Companion Sync, modo imersivo e Nexus Local das versões anteriores continuam disponíveis.
 
 ## Vercel
 

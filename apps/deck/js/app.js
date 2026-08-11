@@ -12,6 +12,7 @@ import { APP_ICON_OPTIONS, resolvedAppIcon } from './ui/app-icons.js';
 import { LAYOUT_PRESETS, applyPreset, layoutSummary, normalizeLayout, normalizeSavedLayouts } from './core/layout.js';
 import { columnsForViewport, normalizeMobilePreferences, orientationForViewport, pageIdByDelta, qualifiesAsSwipe } from './core/mobile.js';
 import { companionIsFresh, connectionQuality, integrationRollup, mediaSummary, normalizeCompanionStatus } from './core/companion-sync.js';
+import { focusActionLabel, focusServices, formatMediaTime, nextRepeatMode, normalizeFocusAction, normalizeSpotifyFocus, progressPercent } from './core/focus.js';
 
 const $ = selector => document.querySelector(selector);
 const els = {
@@ -22,7 +23,8 @@ const els = {
   settingsOpen: $('#settings-open'), settingsDialog: $('#settings-dialog'), settingsClose: $('#settings-close'), cloudStatus: $('#cloud-status'), localStatus: $('#local-status'), localUrl: $('#local-url'), resetData: $('#reset-data'), exportDeck: $('#export-deck'), importDeck: $('#import-deck'), importDeckFile: $('#import-deck-file'), accentPicker: $('#accent-picker'), smartProfilesToggle: $('#smart-profiles-toggle'), foregroundStatus: $('#foreground-status'), integrationObsStatus: $('#integration-obs-status'), integrationSpotifyStatus: $('#integration-spotify-status'), integrationDiscordStatus: $('#integration-discord-status'), integrationBrowserStatus: $('#integration-browser-status'), deckDiagnostic: $('#deck-diagnostic'), deckDiagnosticExport: $('#deck-diagnostic-export'), deckDiagnosticResult: $('#deck-diagnostic-result'), onboardingOpen: $('#onboarding-open'), onboardingDialog: $('#onboarding-dialog'), onboardingClose: $('#onboarding-close'), onboardingPrev: $('#onboarding-prev'), onboardingNext: $('#onboarding-next'), onboardingStepLabel: $('#onboarding-step-label'), onboardingProgressBar: $('#onboarding-progress-bar'),
   buttonDialog: $('#button-dialog'), buttonForm: $('#button-form'), buttonDialogTitle: $('#button-dialog-title'), btnKind: $('#btn-kind'), btnLabel: $('#btn-label'), btnIcon: $('#btn-icon'), btnAppIcon: $('#btn-app-icon'), btnColor: $('#btn-color'), btnSize: $('#btn-size'), btnActionType: $('#btn-action-type'), actionTypeLabel: $('#action-type-label'), actionSection: $('#action-section'), actionSectionTitle: $('#action-section-title'), actionFields: $('#action-fields'), deleteButton: $('#delete-button'), duplicateButton: $('#duplicate-button'), editorPreview: $('#editor-preview'), previewIcon: $('#preview-icon'), previewLabel: $('#preview-label'), previewSize: $('#preview-size'),
   clockTime: $('#clock-time'), clockDate: $('#clock-date'), toastRegion: $('#toast-region'),
-  mobileLockIndicator: $('#mobile-lock-indicator'), mobileImmersiveToggle: $('#mobile-immersive-toggle'), mobileLockToggle: $('#mobile-lock-toggle'), mobileSwipeToggle: $('#mobile-swipe-toggle'), mobileLongpressToggle: $('#mobile-longpress-toggle'), mobileScale: $('#mobile-scale'), mobilePortraitColumns: $('#mobile-portrait-columns'), mobileLandscapeColumns: $('#mobile-landscape-columns'), mobileOrientationStatus: $('#mobile-orientation-status'), mobileColumnsStatus: $('#mobile-columns-status'), mobileDisplayStatus: $('#mobile-display-status'), fullscreenToggle: $('#fullscreen-toggle'), fullscreenSettingsButton: $('#fullscreen-settings-button'), openDevicesSettings: $('#open-devices-settings'), companionSyncBadge: $('#companion-sync-badge'), companionPcStatus: $('#companion-pc-status'), companionQualityStatus: $('#companion-quality-status'), companionAppStatus: $('#companion-app-status'), companionAudioStatus: $('#companion-audio-status'), companionLastSync: $('#companion-last-sync'), companionVersionStatus: $('#companion-version-status'), spotifyNowPlaying: $('#spotify-now-playing'), spotifyTrackStatus: $('#spotify-track-status'), spotifyArtistStatus: $('#spotify-artist-status'), spotifyPlayState: $('#spotify-play-state')
+  mobileLockIndicator: $('#mobile-lock-indicator'), mobileImmersiveToggle: $('#mobile-immersive-toggle'), mobileLockToggle: $('#mobile-lock-toggle'), mobileSwipeToggle: $('#mobile-swipe-toggle'), mobileLongpressToggle: $('#mobile-longpress-toggle'), mobileScale: $('#mobile-scale'), mobilePortraitColumns: $('#mobile-portrait-columns'), mobileLandscapeColumns: $('#mobile-landscape-columns'), mobileOrientationStatus: $('#mobile-orientation-status'), mobileColumnsStatus: $('#mobile-columns-status'), mobileDisplayStatus: $('#mobile-display-status'), fullscreenToggle: $('#fullscreen-toggle'), fullscreenSettingsButton: $('#fullscreen-settings-button'), openDevicesSettings: $('#open-devices-settings'), companionSyncBadge: $('#companion-sync-badge'), companionPcStatus: $('#companion-pc-status'), companionQualityStatus: $('#companion-quality-status'), companionAppStatus: $('#companion-app-status'), companionAudioStatus: $('#companion-audio-status'), companionLastSync: $('#companion-last-sync'), companionVersionStatus: $('#companion-version-status'), spotifyNowPlaying: $('#spotify-now-playing'), spotifyTrackStatus: $('#spotify-track-status'), spotifyArtistStatus: $('#spotify-artist-status'), spotifyPlayState: $('#spotify-play-state'),
+  appFocusDialog: $('#app-focus-dialog'), appFocusClose: $('#app-focus-close'), spotifyFocusSync: $('#spotify-focus-sync'), spotifyFocusArtwork: $('#spotify-focus-artwork'), spotifyFocusArtworkPlaceholder: $('#spotify-focus-artwork-placeholder'), spotifyFocusTrack: $('#spotify-focus-track'), spotifyFocusArtist: $('#spotify-focus-artist'), spotifyFocusAlbum: $('#spotify-focus-album'), spotifyFocusProgress: $('#spotify-focus-progress'), spotifyFocusElapsed: $('#spotify-focus-elapsed'), spotifyFocusDuration: $('#spotify-focus-duration'), spotifyFocusShuffle: $('#spotify-focus-shuffle'), spotifyFocusPrevious: $('#spotify-focus-previous'), spotifyFocusPlay: $('#spotify-focus-play'), spotifyFocusNext: $('#spotify-focus-next'), spotifyFocusRepeat: $('#spotify-focus-repeat'), spotifyFocusVolume: $('#spotify-focus-volume'), spotifyFocusVolumeValue: $('#spotify-focus-volume-value'), spotifyFocusDevice: $('#spotify-focus-device'), spotifyFocusOpen: $('#spotify-focus-open'), spotifyFocusDeviceMeta: $('#spotify-focus-device-meta'), spotifyFocusQueue: $('#spotify-focus-queue')
 };
 
 let state = loadState();
@@ -39,9 +41,9 @@ const deviceChannels = new Map();
 const deviceStatuses = new Map();
 const pendingAcks = new Map();
 const sizeLabels = { square:'1 × 1', wide:'2 × 1', tall:'1 × 2', large:'2 × 2' };
-const actionChips = { open_url:'Web', launch_app:'App', hotkey:'Atalho', media:'Mídia', system:'Sistema', integration:'Integração', macro:'Macro' };
+const actionChips = { open_url:'Web', launch_app:'App', hotkey:'Atalho', media:'Mídia', system:'Sistema', integration:'Integração', focus:'FOCUS', macro:'Macro' };
 const kindChips = { button:'Ação', toggle:'Toggle', macro:'Macro', volume:'Volume', media_panel:'Mídia', status:'Status', clock:'Relógio' };
-const ONBOARDING_KEY = 'nexus.deck.onboarding.v1.5';
+const ONBOARDING_KEY = 'nexus.deck.onboarding.v1.7';
 const ERROR_LOG_KEY = 'nexus.deck.errors.v1';
 let onboardingStep = 0;
 let lastDeckDiagnostic = null;
@@ -50,6 +52,12 @@ let layoutDraft = null;
 const touchDeck = navigator.maxTouchPoints > 0 && (window.matchMedia?.('(pointer: coarse)').matches ?? true);
 let mobileGesture = null;
 let mobileResizeTimer = null;
+let activeFocusService = null;
+let spotifyFocusState = null;
+let spotifyFocusPollTimer = null;
+let spotifyFocusTickTimer = null;
+let spotifyFocusBusy = false;
+let spotifyFocusSnapshotInFlight = false;
 
 hydrateStaticIcons();
 for (const [value, label] of APP_ICON_OPTIONS.slice(2)) { const option=document.createElement('option'); option.value=value; option.textContent=label; els.btnAppIcon?.append(option); }
@@ -109,7 +117,7 @@ function buildDeckDiagnostic() {
   try { errors = JSON.parse(localStorage.getItem(ERROR_LOG_KEY) || '[]'); } catch {}
   add('Erros recentes', errors.length ? 'warn' : 'ok', errors.length ? `${errors.length} evento(s) registrado(s) neste iPad` : 'Nenhum erro de runtime registrado');
   return {
-    format:'nexus-deck-diagnostic', version:1, appVersion:'1.5.0', generatedAt:new Date().toISOString(),
+    format:'nexus-deck-diagnostic', version:1, appVersion:'1.7.0', generatedAt:new Date().toISOString(),
     localMode:Boolean(localConfig?.configured), localUrl:localConfig?.localUrl || null,
     activeDevice:device ? { name:device.name, platform:device.platform, transport:device.transport } : null,
     checks, errors:errors.slice(-10)
@@ -247,6 +255,164 @@ function renderCompanionCenter() {
       if (els.spotifyPlayState) els.spotifyPlayState.textContent = media.playing ? '▶ Tocando' : 'Ⅱ Pausado';
     }
   }
+}
+
+function spotifyFocusFallback() {
+  return normalizeSpotifyFocus({}, activeCompanionStatus()?.spotify || {});
+}
+
+function spotifyFocusCurrent() {
+  return spotifyFocusState || spotifyFocusFallback();
+}
+
+function setSpotifyFocusBusy(busy) {
+  spotifyFocusBusy = Boolean(busy);
+  els.appFocusDialog?.querySelector('.spotify-focus-shell')?.classList.toggle('is-busy', spotifyFocusBusy);
+}
+
+function renderSpotifyFocusProgress() {
+  if (activeFocusService !== 'spotify' || !els.appFocusDialog?.open) return;
+  const focus = spotifyFocusCurrent();
+  const duration = Number(focus.track?.durationMs) || 0;
+  let progress = Number(focus.progressMs) || 0;
+  if (focus.playing && spotifyFocusState?.clientReceivedAt) progress += Math.max(0, Date.now() - spotifyFocusState.clientReceivedAt);
+  progress = duration ? Math.min(duration, progress) : progress;
+  const normalized = duration ? Math.round(progressPercent(progress, duration) * 10) : 0;
+  if (els.spotifyFocusProgress && document.activeElement !== els.spotifyFocusProgress) els.spotifyFocusProgress.value = String(normalized);
+  if (els.spotifyFocusElapsed) els.spotifyFocusElapsed.textContent = formatMediaTime(progress);
+  if (els.spotifyFocusDuration) els.spotifyFocusDuration.textContent = formatMediaTime(duration);
+}
+
+function renderSpotifyFocus() {
+  if (activeFocusService !== 'spotify') return;
+  const focus = spotifyFocusCurrent();
+  const track = focus.track || {};
+  if (els.spotifyFocusTrack) els.spotifyFocusTrack.textContent = track.name || 'Spotify';
+  if (els.spotifyFocusArtist) els.spotifyFocusArtist.textContent = track.artist || (focus.available ? 'Nenhuma reprodução ativa' : 'Spotify não conectado');
+  if (els.spotifyFocusAlbum) els.spotifyFocusAlbum.textContent = track.album || '';
+  if (els.spotifyFocusPlay) {
+    els.spotifyFocusPlay.textContent = focus.playing ? 'Ⅱ' : '▶';
+    els.spotifyFocusPlay.setAttribute('aria-label', focus.playing ? 'Pausar' : 'Reproduzir');
+  }
+  if (els.spotifyFocusShuffle) els.spotifyFocusShuffle.classList.toggle('active', Boolean(focus.shuffle));
+  if (els.spotifyFocusRepeat) {
+    els.spotifyFocusRepeat.classList.toggle('active', focus.repeat !== 'off');
+    els.spotifyFocusRepeat.classList.toggle('repeat-track', focus.repeat === 'track');
+    els.spotifyFocusRepeat.title = focus.repeat === 'track' ? 'Repetir faixa' : focus.repeat === 'context' ? 'Repetir contexto' : 'Repetição desativada';
+  }
+  if (els.spotifyFocusArtwork && els.spotifyFocusArtworkPlaceholder) {
+    const hasArtwork = /^https:\/\//i.test(track.artworkUrl || '');
+    els.spotifyFocusArtwork.classList.toggle('hidden', !hasArtwork);
+    els.spotifyFocusArtworkPlaceholder.classList.toggle('hidden', hasArtwork);
+    if (hasArtwork && els.spotifyFocusArtwork.src !== track.artworkUrl) els.spotifyFocusArtwork.src = track.artworkUrl;
+    if (!hasArtwork) els.spotifyFocusArtwork.removeAttribute('src');
+  }
+  const volume = Math.max(0, Math.min(100, Math.round(Number(focus.device?.volumePercent ?? activeCompanionStatus()?.spotify?.volumePercent ?? 0))));
+  if (els.spotifyFocusVolume && document.activeElement !== els.spotifyFocusVolume) els.spotifyFocusVolume.value = String(volume);
+  if (els.spotifyFocusVolumeValue) els.spotifyFocusVolumeValue.textContent = `${volume}%`;
+  if (els.spotifyFocusDevice) {
+    const current = focus.device?.id || '';
+    const devices = focus.devices?.length ? focus.devices : (focus.device?.name ? [focus.device] : []);
+    els.spotifyFocusDevice.replaceChildren(...devices.map(device => {
+      const option = document.createElement('option');
+      option.value = device.id || '';
+      option.textContent = `${device.name || 'Dispositivo'}${device.active ? ' · ativo' : ''}`;
+      option.disabled = Boolean(device.restricted || !device.id);
+      return option;
+    }));
+    if (!devices.length) {
+      const option = document.createElement('option'); option.value=''; option.textContent='Nenhum dispositivo'; els.spotifyFocusDevice.append(option);
+    }
+    if (current && [...els.spotifyFocusDevice.options].some(option => option.value === current)) els.spotifyFocusDevice.value = current;
+  }
+  if (els.spotifyFocusDeviceMeta) {
+    const deviceName = focus.device?.name || activeCompanionStatus()?.spotify?.device || '—';
+    els.spotifyFocusDeviceMeta.textContent = deviceName;
+  }
+  if (els.spotifyFocusOpen) els.spotifyFocusOpen.disabled = !/^https:\/\//i.test(track.spotifyUrl || '');
+  if (els.spotifyFocusQueue) {
+    const queue = Array.isArray(focus.queue) ? focus.queue : [];
+    if (!queue.length) {
+      const empty = document.createElement('div'); empty.className='spotify-queue-empty'; empty.textContent='A fila aparecerá quando o Spotify estiver reproduzindo.';
+      els.spotifyFocusQueue.replaceChildren(empty);
+    } else {
+      els.spotifyFocusQueue.replaceChildren(...queue.map((item,index) => {
+        const row=document.createElement('div'); row.className='spotify-queue-item';
+        const number=document.createElement('span'); number.className='spotify-queue-number'; number.textContent=String(index+1).padStart(2,'0');
+        const copy=document.createElement('span'); copy.className='spotify-queue-copy';
+        const title=document.createElement('strong'); title.textContent=item.name || 'Spotify';
+        const artist=document.createElement('span'); artist.textContent=item.artist || item.album || '';
+        copy.append(title,artist);
+        const duration=document.createElement('span'); duration.className='spotify-queue-duration'; duration.textContent=formatMediaTime(item.durationMs);
+        row.append(number,copy,duration); return row;
+      }));
+    }
+  }
+  renderSpotifyFocusProgress();
+}
+
+async function requestSpotifyFocusSnapshot({ silent = true } = {}) {
+  if (activeFocusService !== 'spotify' || spotifyFocusSnapshotInFlight) return false;
+  const status = activeCompanionStatus();
+  if (!status?.integrations?.spotify?.connected || !companionIsFresh(status)) {
+    if (els.spotifyFocusSync) { els.spotifyFocusSync.textContent='Spotify offline'; els.spotifyFocusSync.className='app-focus-sync error'; }
+    renderSpotifyFocus();
+    return false;
+  }
+  spotifyFocusSnapshotInFlight = true;
+  if (els.spotifyFocusSync) { els.spotifyFocusSync.textContent='Sincronizando…'; els.spotifyFocusSync.className='app-focus-sync'; }
+  try {
+    const result = await broadcastAction({ type:'integration', service:'spotify', command:'focus_snapshot', params:{} });
+    if (!result) return false;
+    const ack = typeof result === 'string' ? await waitForAck(result, 10_000) : result;
+    if (!ack.ok) throw new Error(ack.error || 'Spotify não respondeu');
+    const data = ack.report?.data || {};
+    spotifyFocusState = { ...normalizeSpotifyFocus(data, activeCompanionStatus()?.spotify || {}), clientReceivedAt:Date.now() };
+    if (els.spotifyFocusSync) { els.spotifyFocusSync.textContent='Ao vivo'; els.spotifyFocusSync.className='app-focus-sync online'; }
+    renderSpotifyFocus();
+    return true;
+  } catch (error) {
+    if (els.spotifyFocusSync) { els.spotifyFocusSync.textContent='Falha ao sincronizar'; els.spotifyFocusSync.className='app-focus-sync error'; }
+    if (!silent) toast(error.message || 'Falha ao carregar Spotify Focus', 'error');
+    return false;
+  } finally { spotifyFocusSnapshotInFlight = false; }
+}
+
+async function runSpotifyFocusCommand(command, params = {}) {
+  if (spotifyFocusBusy) return false;
+  setSpotifyFocusBusy(true);
+  try {
+    const result = await broadcastAction({ type:'integration', service:'spotify', command, params });
+    if (!result) return false;
+    const ack = typeof result === 'string' ? await waitForAck(result, 8000) : result;
+    if (!ack.ok) throw new Error(ack.error || 'Comando Spotify falhou');
+    await new Promise(resolve => setTimeout(resolve, 180));
+    await requestSpotifyFocusSnapshot({ silent:true });
+    return true;
+  } catch (error) {
+    toast(error.message || 'Falha no Spotify', 'error');
+    return false;
+  } finally { setSpotifyFocusBusy(false); }
+}
+
+function openAppFocus(service = 'spotify') {
+  const focusAction = normalizeFocusAction({ type:'focus', service });
+  activeFocusService = focusAction.service;
+  spotifyFocusState = { ...spotifyFocusFallback(), clientReceivedAt:Date.now() };
+  renderSpotifyFocus();
+  if (!els.appFocusDialog.open) els.appFocusDialog.showModal();
+  clearInterval(spotifyFocusPollTimer); clearInterval(spotifyFocusTickTimer);
+  spotifyFocusPollTimer = setInterval(() => requestSpotifyFocusSnapshot({ silent:true }), 4500);
+  spotifyFocusTickTimer = setInterval(renderSpotifyFocusProgress, 500);
+  requestSpotifyFocusSnapshot({ silent:false });
+}
+
+function closeAppFocus() {
+  activeFocusService = null;
+  spotifyFocusState = null;
+  clearInterval(spotifyFocusPollTimer); clearInterval(spotifyFocusTickTimer);
+  spotifyFocusPollTimer = null; spotifyFocusTickTimer = null;
+  if (els.appFocusDialog?.open) els.appFocusDialog.close();
 }
 
 function updateMobileEnvironment() {
@@ -690,6 +856,7 @@ function subtitleFor(action) {
   if (action.type === 'launch_app') return action.path?.split(/[\\/]/).pop() || 'Aplicativo do Windows';
   if (action.type === 'system') return action.key === 'lock' ? 'Bloquear Windows' : 'Comando do sistema';
   if (action.type === 'integration') return integrationActionLabel(action);
+  if (action.type === 'focus') return focusActionLabel(action);
   if (action.type === 'macro') {
     const count = action.steps?.length || 0;
     const seconds = Math.round(macroDurationHint(action) / 100) / 10;
@@ -739,13 +906,17 @@ function renderActionButton(button, index) {
   const node = cardBase(button, index, 'button');
   const isToggle = kind === 'toggle';
   const isMacro = kind === 'macro' || button.action?.type === 'macro';
+  const isFocus = button.action?.type === 'focus';
+  const spotifyLive = isFocus && button.action?.service === 'spotify' ? activeCompanionStatus()?.spotify : null;
+  if (isFocus) node.classList.add('focus-key', `${button.action?.service || 'app'}-focus-key`);
+  if (spotifyLive?.available && (spotifyLive.track || spotifyLive.artist)) node.classList.add('has-live-track');
   if (isToggle && button.state) node.classList.add('is-on');
   node.innerHTML = `<span class="deck-top"><span class="deck-icon">${buttonIconMarkup(button)}</span><span class="action-chip"></span></span><span class="deck-copy"><span class="deck-label"></span><span class="deck-subtitle"></span></span>${isToggle ? '<span class="toggle-track"><span></span></span>' : ''}${isMacro ? '<span class="macro-progress"><span class="macro-progress-bar"></span></span>' : ''}${editHandleMarkup()}`;
   const fallback = node.querySelector('.fallback-icon');
   if (fallback) fallback.textContent = button.icon || '⌘';
-  node.querySelector('.action-chip').textContent = editing ? 'Editar' : (isToggle ? (button.state ? 'ON' : 'OFF') : (isMacro ? 'Macro' : (actionChips[button.action?.type] || 'Ação')));
+  node.querySelector('.action-chip').textContent = editing ? 'Editar' : (isToggle ? (button.state ? 'ON' : 'OFF') : (isMacro ? 'Macro' : (isFocus && spotifyLive?.track ? 'AO VIVO' : (actionChips[button.action?.type] || 'Ação'))));
   node.querySelector('.deck-label').textContent = button.label;
-  node.querySelector('.deck-subtitle').textContent = editing ? `${CONTROL_KIND_LABELS[kind]} · ${sizeLabels[button.size || 'square']}` : (isToggle ? (button.state ? 'Ativo' : 'Inativo') : subtitleFor(button.action));
+  node.querySelector('.deck-subtitle').textContent = editing ? `${CONTROL_KIND_LABELS[kind]} · ${sizeLabels[button.size || 'square']}` : (isToggle ? (button.state ? 'Ativo' : 'Inativo') : (isFocus && spotifyLive?.track ? `${spotifyLive.track}${spotifyLive.artist ? ` · ${spotifyLive.artist}` : ''}` : subtitleFor(button.action)));
   node.addEventListener('click', async () => {
     if (performance.now() < suppressClickUntil || editing) return;
     if (isToggle) {
@@ -923,6 +1094,15 @@ function updateLiveWidgets(now = new Date()) {
     el.textContent = media.source === 'Spotify' && media.playing ? 'Ⅱ' : '▶';
     el.setAttribute('aria-label', media.playing ? 'Pausar' : 'Reproduzir');
   });
+  document.querySelectorAll('.spotify-focus-key').forEach(card => {
+    const subtitle = card.querySelector('.deck-subtitle');
+    const chip = card.querySelector('.action-chip');
+    const spotify = status?.spotify;
+    const live = spotify?.available && Boolean(spotify.track || spotify.artist);
+    card.classList.toggle('has-live-track', live);
+    if (!editing && subtitle) subtitle.textContent = live ? `${spotify.track || 'Spotify'}${spotify.artist ? ` · ${spotify.artist}` : ''}` : 'Abrir Spotify Focus';
+    if (!editing && chip) chip.textContent = live ? 'AO VIVO' : 'FOCUS';
+  });
   renderCompanionCenter();
 }
 
@@ -1055,6 +1235,11 @@ function actionInputFields(action = null) {
     const input = document.createElement('input'); input.id = 'action-hotkey'; input.placeholder = 'CTRL+SHIFT+K'; input.value = action?.type === type ? action.keys.join('+') : ''; label.append(input);
   } else if (type === 'integration') {
     return createIntegrationEditor(action?.type === 'integration' ? action : null);
+  } else if (type === 'focus') {
+    label.textContent = 'Aplicativo em foco';
+    const select = document.createElement('select'); select.id = 'action-focus-service';
+    focusServices().forEach(item => { const option=document.createElement('option'); option.value=item.id; option.textContent=`${item.name} Focus`; select.append(option); });
+    select.value = normalizeFocusAction(action?.type === 'focus' ? action : {}).service; label.append(select);
   } else if (type === 'media') {
     label.textContent = 'Comando';
     const select = document.createElement('select'); select.id = 'action-media';
@@ -1089,7 +1274,7 @@ function createIntegrationEditor(action = null, compact = false) {
 
   const refresh = (preserveAction = null) => {
     const descriptor = integrationDescriptor(service.value);
-    command.replaceChildren(...Object.entries(descriptor?.commands || {}).map(([id,meta]) => { const option=document.createElement('option'); option.value=id; option.textContent=meta.label; return option; }));
+    command.replaceChildren(...Object.entries(descriptor?.commands || {}).filter(([,meta]) => !meta.hidden).map(([id,meta]) => { const option=document.createElement('option'); option.value=id; option.textContent=meta.label; return option; }));
     if (preserveAction && preserveAction.service === service.value && descriptor?.commands?.[preserveAction.command]) command.value = preserveAction.command;
     refreshParams(preserveAction);
   };
@@ -1297,6 +1482,7 @@ function actionFromForm() {
   if (type === 'launch_app') return { type, path: $('#action-path').value.trim(), args: [] };
   if (type === 'hotkey') return { type, keys: $('#action-hotkey').value.toUpperCase().split('+').map(v => v.trim()).filter(Boolean) };
   if (type === 'integration') return integrationActionFromContainer(els.actionFields.querySelector('.integration-action-editor'));
+  if (type === 'focus') return normalizeFocusAction({ type:'focus', service:$('#action-focus-service')?.value });
   if (type === 'system') return { type, key: $('#action-system').value };
   return { type, key: $('#action-media').value };
 }
@@ -1309,7 +1495,8 @@ function controlFromForm() {
   };
   if (kind === 'button' || kind === 'toggle') {
     record.action = actionFromForm();
-    createCommand(record.action, 'validation');
+    if (kind === 'toggle' && record.action.type === 'focus') throw new Error('App Focus deve ser usado em um Botão de ação.');
+    if (record.action.type !== 'focus') createCommand(record.action, 'validation');
   }
   if (kind === 'macro') {
     record.action = macroFromForm();
@@ -1454,6 +1641,7 @@ async function executeMacro(button) {
 }
 
 async function executeButton(button) {
+  if (button.action?.type === 'focus') { openAppFocus(button.action.service); return true; }
   if (button.action?.type === 'macro' || normalizeKind(button.kind) === 'macro') return executeMacro(button);
   setKeyFeedback(button.id, 'sending');
   const ok = await executeAction(button.action, button.label);
@@ -1648,6 +1836,42 @@ els.pairStart.addEventListener('click', async () => {
   } catch (error) { els.pairProgress.textContent = error.message; toast(error.message, 'error'); }
   finally { els.pairStart.disabled = false; }
 });
+els.appFocusClose?.addEventListener('click', closeAppFocus);
+els.appFocusDialog?.addEventListener('close', () => {
+  activeFocusService = null; spotifyFocusState = null;
+  clearInterval(spotifyFocusPollTimer); clearInterval(spotifyFocusTickTimer);
+  spotifyFocusPollTimer = null; spotifyFocusTickTimer = null;
+});
+els.spotifyNowPlaying?.addEventListener('click', () => openAppFocus('spotify'));
+els.spotifyFocusPrevious?.addEventListener('click', () => runSpotifyFocusCommand('previous'));
+els.spotifyFocusPlay?.addEventListener('click', () => runSpotifyFocusCommand(spotifyFocusCurrent().playing ? 'pause' : 'play'));
+els.spotifyFocusNext?.addEventListener('click', () => runSpotifyFocusCommand('next'));
+els.spotifyFocusShuffle?.addEventListener('click', () => runSpotifyFocusCommand(spotifyFocusCurrent().shuffle ? 'shuffle_off' : 'shuffle_on'));
+els.spotifyFocusRepeat?.addEventListener('click', () => {
+  const mode = nextRepeatMode(spotifyFocusCurrent().repeat);
+  runSpotifyFocusCommand(`repeat_${mode}`);
+});
+els.spotifyFocusProgress?.addEventListener('input', () => {
+  const duration = Number(spotifyFocusCurrent().track?.durationMs) || 0;
+  const ms = Math.round((Number(els.spotifyFocusProgress.value) / 1000) * duration);
+  if (els.spotifyFocusElapsed) els.spotifyFocusElapsed.textContent = formatMediaTime(ms);
+});
+els.spotifyFocusProgress?.addEventListener('change', () => {
+  const duration = Number(spotifyFocusCurrent().track?.durationMs) || 0;
+  const positionMs = Math.round((Number(els.spotifyFocusProgress.value) / 1000) * duration);
+  if (duration > 0) runSpotifyFocusCommand('seek', { positionMs });
+});
+els.spotifyFocusVolume?.addEventListener('input', () => { if (els.spotifyFocusVolumeValue) els.spotifyFocusVolumeValue.textContent = `${els.spotifyFocusVolume.value}%`; });
+els.spotifyFocusVolume?.addEventListener('change', () => runSpotifyFocusCommand('set_volume', { volumePercent:Number(els.spotifyFocusVolume.value) }));
+els.spotifyFocusDevice?.addEventListener('change', () => {
+  const deviceId = els.spotifyFocusDevice.value;
+  if (deviceId && deviceId !== spotifyFocusCurrent().device?.id) runSpotifyFocusCommand('transfer_playback', { deviceId });
+});
+els.spotifyFocusOpen?.addEventListener('click', () => {
+  const url = spotifyFocusCurrent().track?.spotifyUrl;
+  if (/^https:\/\//i.test(url || '')) window.open(url, '_blank', 'noopener,noreferrer');
+});
+
 els.fullscreenToggle?.addEventListener('click', toggleFullscreen);
 els.fullscreenSettingsButton?.addEventListener('click', toggleFullscreen);
 els.openDevicesSettings?.addEventListener('click', () => { els.settingsDialog?.close(); renderDeviceDialog(); els.deviceDialog?.showModal(); });

@@ -46,9 +46,16 @@ export function normalizeCompanionStatus(input = {}, meta = {}) {
       playing: bool(spotify.playing),
       track: String(spotify.track || ''),
       artist: String(spotify.artist || ''),
+      album: String(spotify.album || ''),
+      artworkUrl: String(spotify.artworkUrl || ''),
+      spotifyUrl: String(spotify.spotifyUrl || ''),
+      uri: String(spotify.uri || ''),
       device: String(spotify.device || ''),
       progressMs: num(spotify.progressMs),
-      volumePercent: num(spotify.volumePercent)
+      durationMs: num(spotify.durationMs),
+      volumePercent: num(spotify.volumePercent),
+      shuffle: bool(spotify.shuffle),
+      repeat: String(spotify.repeat || 'off')
     }
   };
 }

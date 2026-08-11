@@ -1,7 +1,7 @@
 {
   "name": "Nexus Deck",
   "short_name": "Nexus",
-  "description": "Nexus Deck V1.5: iPad imersivo com sincronização bidirecional ao Nexus Companion no Windows.",
+  "description": "Nexus Deck V1.7: App Focus com experiência imersiva para Spotify e base extensível para integrações do Nexus.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

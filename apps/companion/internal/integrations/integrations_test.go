@@ -199,3 +199,50 @@ func writeServerFrame(w io.Writer, opcode byte, payload []byte) error {
 	_, err := w.Write(payload)
 	return err
 }
+
+func TestSpotifyPlaybackStateIncludesAppFocusMetadata(t *testing.T) {
+	payload := map[string]any{
+		"is_playing":    true,
+		"progress_ms":   float64(61000),
+		"shuffle_state": true,
+		"repeat_state":  "context",
+		"item": map[string]any{
+			"name":          "Midnight City",
+			"duration_ms":   float64(244000),
+			"explicit":      false,
+			"uri":           "spotify:track:test",
+			"external_urls": map[string]any{"spotify": "https://open.spotify.com/track/test"},
+			"artists":       []any{map[string]any{"name": "M83"}},
+			"album":         map[string]any{"name": "Hurry Up", "images": []any{map[string]any{"url": "https://i.scdn.co/image/test"}}},
+		},
+		"device": map[string]any{"name": "Desktop", "volume_percent": float64(62)},
+	}
+	state := spotifyPlaybackState(payload)
+	if state["track"] != "Midnight City" || state["artist"] != "M83" || state["album"] != "Hurry Up" {
+		t.Fatalf("metadata incompleta: %+v", state)
+	}
+	if state["artworkUrl"] != "https://i.scdn.co/image/test" || state["durationMs"] != 244000 {
+		t.Fatalf("artwork/duration ausentes: %+v", state)
+	}
+	if state["repeat"] != "context" || state["shuffle"] != true {
+		t.Fatalf("playback state incompleto: %+v", state)
+	}
+}
+
+func TestSpotifyCatalogHasTransferPlayback(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(t.TempDir(), "config"))
+	s, err := store.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := NewSpotifyAdapter(s)
+	found := false
+	for _, command := range a.Commands() {
+		if command.ID == "transfer_playback" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("transfer_playback ausente")
+	}
+}

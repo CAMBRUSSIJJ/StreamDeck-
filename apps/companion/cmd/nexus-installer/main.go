@@ -17,7 +17,7 @@ import (
 //go:embed payload/*
 var payloadFS embed.FS
 
-const version = "1.5.0"
+const version = "1.7.0"
 const product = "Nexus Deck"
 const runKey = `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
 const uninstallKey = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\NexusDeck`
@@ -43,7 +43,7 @@ func main() {
 }
 
 func install() {
-	if messageBox("Instalar o Nexus Deck V1.5 neste computador?\n\nO Companion será instalado para o usuário atual e iniciará automaticamente com o Windows.", "Nexus Deck Setup", mbYesNo|mbIconQuestion) != idYes {
+	if messageBox("Instalar o Nexus Deck V1.7 neste computador?\n\nO Companion será instalado para o usuário atual e iniciará automaticamente com o Windows.", "Nexus Deck Setup", mbYesNo|mbIconQuestion) != idYes {
 		return
 	}
 

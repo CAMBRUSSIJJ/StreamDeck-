@@ -1,5 +1,18 @@
 # Changelog
 
+
+## 1.7.0 — App Focus
+
+- Nova ação local **App Focus** no editor de teclas.
+- Spotify Focus em tela dedicada, otimizado para iPad horizontal e vertical.
+- Metadata enriquecida: capa, faixa, artista, álbum, duração, progresso e link oficial do Spotify.
+- Controles reais de reprodução: play/pause, anterior, próxima, seek, volume, shuffle e repeat.
+- Seleção de dispositivo Spotify Connect.
+- Fila do Spotify carregada sob demanda apenas enquanto o App Focus está aberto.
+- Snapshot sob demanda evita transformar o polling normal do Companion em múltiplas chamadas de API.
+- Teclas Spotify Focus passam a mostrar faixa/artista ao vivo quando disponível.
+- Base genérica `focus.js` preparada para futuros módulos OBS Focus e Windows Focus.
+
 ## 1.5.0 — Companion Sync + iPad Immersivo
 
 - Companion passa a devolver um snapshot de estado junto de cada comando local.
@@ -11,8 +24,6 @@
 - Feedback visual de envio/sucesso/erro por tecla.
 - Novo controle de tela cheia e refinamentos para Home Screen/standalone.
 - Novo módulo `companion-sync.js` e testes dedicados.
-
-# Changelog
 
 ## 1.2.0 — Layout Engine
 

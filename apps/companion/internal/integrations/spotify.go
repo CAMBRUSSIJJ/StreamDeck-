@@ -1,6 +1,7 @@
 package integrations
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -46,6 +47,7 @@ func (a *SpotifyAdapter) Commands() []Command {
 		{ID: "set_volume", Label: "Definir volume", Requires: "volumePercent"}, {ID: "seek", Label: "Ir para posição", Requires: "positionMs"},
 		{ID: "shuffle_on", Label: "Ativar aleatório"}, {ID: "shuffle_off", Label: "Desativar aleatório"},
 		{ID: "repeat_track", Label: "Repetir faixa"}, {ID: "repeat_context", Label: "Repetir contexto"}, {ID: "repeat_off", Label: "Desativar repetição"},
+		{ID: "transfer_playback", Label: "Trocar dispositivo", Requires: "deviceId"},
 	}
 }
 
@@ -67,62 +69,17 @@ func (a *SpotifyAdapter) Status(ctx context.Context) Status {
 		status.Detail = "Sessão Spotify expirada"
 		return status
 	}
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.spotify.com/v1/me/player", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	resp, err := a.http.Do(req)
+	payload, code, err := a.getJSON(ctx, token, "https://api.spotify.com/v1/me/player")
 	if err != nil {
 		status.Error = err.Error()
 		return status
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNoContent {
+	if code == http.StatusNoContent {
 		status.Detail = "Conectado · sem reprodução ativa"
 		status.State = map[string]any{"playing": false}
 		return status
 	}
-	if resp.StatusCode >= 300 {
-		status.Error = spotifyError(resp)
-		return status
-	}
-	var payload map[string]any
-	if json.NewDecoder(resp.Body).Decode(&payload) != nil {
-		status.Detail = "Conectado"
-		return status
-	}
-	state := map[string]any{}
-	if playing, ok := payload["is_playing"].(bool); ok {
-		state["playing"] = playing
-	}
-	if progress, ok := numberFromAny(payload["progress_ms"]); ok {
-		state["progressMs"] = progress
-	}
-	if item, ok := payload["item"].(map[string]any); ok {
-		if name, ok := item["name"].(string); ok {
-			state["track"] = name
-		}
-		if artists, ok := item["artists"].([]any); ok {
-			names := []string{}
-			for _, v := range artists {
-				if m, ok := v.(map[string]any); ok {
-					if n, ok := m["name"].(string); ok {
-						names = append(names, n)
-					}
-				}
-			}
-			if len(names) > 0 {
-				state["artist"] = strings.Join(names, ", ")
-			}
-		}
-	}
-	if device, ok := payload["device"].(map[string]any); ok {
-		if name, ok := device["name"].(string); ok {
-			state["device"] = name
-		}
-		if vol, ok := numberFromAny(device["volume_percent"]); ok {
-			state["volumePercent"] = vol
-		}
-	}
-	status.State = state
+	status.State = spotifyPlaybackState(payload)
 	status.Detail = "Conectado à Web API"
 	return status
 }
@@ -132,8 +89,14 @@ func (a *SpotifyAdapter) Execute(ctx context.Context, command string, params map
 	if err != nil {
 		return nil, err
 	}
+	if command == "focus_snapshot" {
+		return a.focusSnapshot(ctx, token)
+	}
+
 	method, path := "", ""
 	query := url.Values{}
+	var requestBody io.Reader
+	contentType := ""
 	switch command {
 	case "play":
 		method, path = http.MethodPut, "/v1/me/player/play"
@@ -163,6 +126,16 @@ func (a *SpotifyAdapter) Execute(ctx context.Context, command string, params map
 	case "repeat_track", "repeat_context", "repeat_off":
 		method, path = http.MethodPut, "/v1/me/player/repeat"
 		query.Set("state", strings.TrimPrefix(command, "repeat_"))
+	case "transfer_playback":
+		deviceID, _ := params["deviceId"].(string)
+		deviceID = strings.TrimSpace(deviceID)
+		if deviceID == "" {
+			return nil, errors.New("deviceId é obrigatório")
+		}
+		method, path = http.MethodPut, "/v1/me/player"
+		raw, _ := json.Marshal(map[string]any{"device_ids": []string{deviceID}, "play": true})
+		requestBody = bytes.NewReader(raw)
+		contentType = "application/json"
 	default:
 		return nil, fmt.Errorf("comando Spotify não suportado: %s", command)
 	}
@@ -170,8 +143,11 @@ func (a *SpotifyAdapter) Execute(ctx context.Context, command string, params map
 	if len(query) > 0 {
 		endpoint += "?" + query.Encode()
 	}
-	req, _ := http.NewRequestWithContext(ctx, method, endpoint, nil)
+	req, _ := http.NewRequestWithContext(ctx, method, endpoint, requestBody)
 	req.Header.Set("Authorization", "Bearer "+token)
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
 	resp, err := a.http.Do(req)
 	if err != nil {
 		return nil, err
@@ -181,6 +157,185 @@ func (a *SpotifyAdapter) Execute(ctx context.Context, command string, params map
 		return nil, errors.New(spotifyError(resp))
 	}
 	return map[string]any{"command": command, "status": resp.StatusCode}, nil
+}
+
+func (a *SpotifyAdapter) focusSnapshot(ctx context.Context, token string) (map[string]any, error) {
+	playback, playbackCode, err := a.getJSON(ctx, token, "https://api.spotify.com/v1/me/player")
+	if err != nil {
+		return nil, err
+	}
+	result := map[string]any{"available": true, "fetchedAt": time.Now().UnixMilli(), "playing": false, "queue": []any{}, "devices": []any{}}
+	if playbackCode != http.StatusNoContent {
+		for key, value := range spotifyPlaybackState(playback) {
+			result[key] = value
+		}
+		if item, ok := playback["item"].(map[string]any); ok {
+			result["track"] = spotifyTrackFromItem(item)
+		}
+		if device, ok := playback["device"].(map[string]any); ok {
+			result["device"] = spotifyDeviceFromMap(device)
+		}
+		if contextObj, ok := playback["context"].(map[string]any); ok {
+			if v, ok := contextObj["type"].(string); ok {
+				result["contextType"] = v
+			}
+		}
+	}
+
+	if devicesPayload, _, devicesErr := a.getJSON(ctx, token, "https://api.spotify.com/v1/me/player/devices"); devicesErr == nil {
+		devices := []any{}
+		if raw, ok := devicesPayload["devices"].([]any); ok {
+			for _, entry := range raw {
+				if device, ok := entry.(map[string]any); ok {
+					devices = append(devices, spotifyDeviceFromMap(device))
+				}
+			}
+		}
+		result["devices"] = devices
+	}
+
+	if queuePayload, _, queueErr := a.getJSON(ctx, token, "https://api.spotify.com/v1/me/player/queue"); queueErr == nil {
+		queue := []any{}
+		if raw, ok := queuePayload["queue"].([]any); ok {
+			for index, entry := range raw {
+				if index >= 12 {
+					break
+				}
+				if item, ok := entry.(map[string]any); ok {
+					queue = append(queue, spotifyTrackFromItem(item))
+				}
+			}
+		}
+		result["queue"] = queue
+	}
+	return result, nil
+}
+
+func (a *SpotifyAdapter) getJSON(ctx context.Context, token, endpoint string) (map[string]any, int, error) {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := a.http.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNoContent {
+		return map[string]any{}, resp.StatusCode, nil
+	}
+	if resp.StatusCode >= 300 {
+		return nil, resp.StatusCode, errors.New(spotifyError(resp))
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, resp.StatusCode, err
+	}
+	return payload, resp.StatusCode, nil
+}
+
+func spotifyPlaybackState(payload map[string]any) map[string]any {
+	state := map[string]any{}
+	if playing, ok := payload["is_playing"].(bool); ok {
+		state["playing"] = playing
+	}
+	if progress, ok := numberFromAny(payload["progress_ms"]); ok {
+		state["progressMs"] = progress
+	}
+	if shuffle, ok := payload["shuffle_state"].(bool); ok {
+		state["shuffle"] = shuffle
+	}
+	if repeat, ok := payload["repeat_state"].(string); ok {
+		state["repeat"] = repeat
+	}
+	if item, ok := payload["item"].(map[string]any); ok {
+		track := spotifyTrackFromItem(item)
+		for key, value := range track {
+			switch key {
+			case "name":
+				state["track"] = value
+			case "artist", "album", "artworkUrl", "spotifyUrl", "uri", "durationMs", "explicit":
+				state[key] = value
+			}
+		}
+	}
+	if device, ok := payload["device"].(map[string]any); ok {
+		if name, ok := device["name"].(string); ok {
+			state["device"] = name
+		}
+		if vol, ok := numberFromAny(device["volume_percent"]); ok {
+			state["volumePercent"] = vol
+		}
+	}
+	return state
+}
+
+func spotifyTrackFromItem(item map[string]any) map[string]any {
+	track := map[string]any{}
+	if name, ok := item["name"].(string); ok {
+		track["name"] = name
+	}
+	if duration, ok := numberFromAny(item["duration_ms"]); ok {
+		track["durationMs"] = duration
+	}
+	if explicit, ok := item["explicit"].(bool); ok {
+		track["explicit"] = explicit
+	}
+	if uri, ok := item["uri"].(string); ok {
+		track["uri"] = uri
+	}
+	if urls, ok := item["external_urls"].(map[string]any); ok {
+		if spotifyURL, ok := urls["spotify"].(string); ok {
+			track["spotifyUrl"] = spotifyURL
+		}
+	}
+	if artists, ok := item["artists"].([]any); ok {
+		names := []string{}
+		for _, value := range artists {
+			if artist, ok := value.(map[string]any); ok {
+				if name, ok := artist["name"].(string); ok {
+					names = append(names, name)
+				}
+			}
+		}
+		if len(names) > 0 {
+			track["artist"] = strings.Join(names, ", ")
+		}
+	}
+	if album, ok := item["album"].(map[string]any); ok {
+		if name, ok := album["name"].(string); ok {
+			track["album"] = name
+		}
+		if images, ok := album["images"].([]any); ok && len(images) > 0 {
+			if first, ok := images[0].(map[string]any); ok {
+				if imageURL, ok := first["url"].(string); ok {
+					track["artworkUrl"] = imageURL
+				}
+			}
+		}
+	}
+	return track
+}
+
+func spotifyDeviceFromMap(device map[string]any) map[string]any {
+	out := map[string]any{}
+	if id, ok := device["id"].(string); ok {
+		out["id"] = id
+	}
+	if name, ok := device["name"].(string); ok {
+		out["name"] = name
+	}
+	if typ, ok := device["type"].(string); ok {
+		out["type"] = typ
+	}
+	if active, ok := device["is_active"].(bool); ok {
+		out["active"] = active
+	}
+	if restricted, ok := device["is_restricted"].(bool); ok {
+		out["restricted"] = restricted
+	}
+	if volume, ok := numberFromAny(device["volume_percent"]); ok {
+		out["volumePercent"] = volume
+	}
+	return out
 }
 
 func (a *SpotifyAdapter) AuthorizationURL() (string, error) {
