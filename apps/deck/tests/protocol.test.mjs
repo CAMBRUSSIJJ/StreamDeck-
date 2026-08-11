@@ -7,6 +7,7 @@ test('supported actions validate', () => {
   assert.equal(validateAction({type:'launch_app', path:'C:\\App\\app.exe', args:[]}), true);
   assert.equal(validateAction({type:'hotkey', keys:['CTRL','SHIFT','K']}), true);
   assert.equal(validateAction({type:'media', key:'play_pause'}), true);
+  assert.equal(validateAction({type:'media', key:'volume_set', value:64}), true);
   assert.equal(validateAction({type:'system', key:'lock'}), true);
   assert.equal(validateAction({type:'integration', service:'browser', command:'new_tab', params:{}}), true);
 });
@@ -21,4 +22,8 @@ test('command gets timestamp and id', () => {
   assert.equal(cmd.id, 'abc');
   assert.equal(cmd.body.action.key, 'next');
   assert.equal(typeof cmd.ts, 'number');
+});
+
+test('volume_set outside range is rejected', () => {
+  assert.throws(() => validateAction({type:'media', key:'volume_set', value:120}));
 });

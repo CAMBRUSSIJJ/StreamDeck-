@@ -11,6 +11,7 @@ import { hydrateStaticIcons, iconSvg, semanticIcon } from './ui/icons.js';
 import { APP_ICON_OPTIONS, resolvedAppIcon } from './ui/app-icons.js';
 import { LAYOUT_PRESETS, applyPreset, layoutSummary, normalizeLayout, normalizeSavedLayouts } from './core/layout.js';
 import { columnsForViewport, normalizeMobilePreferences, orientationForViewport, pageIdByDelta, qualifiesAsSwipe } from './core/mobile.js';
+import { companionIsFresh, connectionQuality, integrationRollup, mediaSummary, normalizeCompanionStatus } from './core/companion-sync.js';
 
 const $ = selector => document.querySelector(selector);
 const els = {
@@ -21,7 +22,7 @@ const els = {
   settingsOpen: $('#settings-open'), settingsDialog: $('#settings-dialog'), settingsClose: $('#settings-close'), cloudStatus: $('#cloud-status'), localStatus: $('#local-status'), localUrl: $('#local-url'), resetData: $('#reset-data'), exportDeck: $('#export-deck'), importDeck: $('#import-deck'), importDeckFile: $('#import-deck-file'), accentPicker: $('#accent-picker'), smartProfilesToggle: $('#smart-profiles-toggle'), foregroundStatus: $('#foreground-status'), integrationObsStatus: $('#integration-obs-status'), integrationSpotifyStatus: $('#integration-spotify-status'), integrationDiscordStatus: $('#integration-discord-status'), integrationBrowserStatus: $('#integration-browser-status'), deckDiagnostic: $('#deck-diagnostic'), deckDiagnosticExport: $('#deck-diagnostic-export'), deckDiagnosticResult: $('#deck-diagnostic-result'), onboardingOpen: $('#onboarding-open'), onboardingDialog: $('#onboarding-dialog'), onboardingClose: $('#onboarding-close'), onboardingPrev: $('#onboarding-prev'), onboardingNext: $('#onboarding-next'), onboardingStepLabel: $('#onboarding-step-label'), onboardingProgressBar: $('#onboarding-progress-bar'),
   buttonDialog: $('#button-dialog'), buttonForm: $('#button-form'), buttonDialogTitle: $('#button-dialog-title'), btnKind: $('#btn-kind'), btnLabel: $('#btn-label'), btnIcon: $('#btn-icon'), btnAppIcon: $('#btn-app-icon'), btnColor: $('#btn-color'), btnSize: $('#btn-size'), btnActionType: $('#btn-action-type'), actionTypeLabel: $('#action-type-label'), actionSection: $('#action-section'), actionSectionTitle: $('#action-section-title'), actionFields: $('#action-fields'), deleteButton: $('#delete-button'), duplicateButton: $('#duplicate-button'), editorPreview: $('#editor-preview'), previewIcon: $('#preview-icon'), previewLabel: $('#preview-label'), previewSize: $('#preview-size'),
   clockTime: $('#clock-time'), clockDate: $('#clock-date'), toastRegion: $('#toast-region'),
-  mobileLockIndicator: $('#mobile-lock-indicator'), mobileImmersiveToggle: $('#mobile-immersive-toggle'), mobileLockToggle: $('#mobile-lock-toggle'), mobileSwipeToggle: $('#mobile-swipe-toggle'), mobileLongpressToggle: $('#mobile-longpress-toggle'), mobileScale: $('#mobile-scale'), mobilePortraitColumns: $('#mobile-portrait-columns'), mobileLandscapeColumns: $('#mobile-landscape-columns'), mobileOrientationStatus: $('#mobile-orientation-status'), mobileColumnsStatus: $('#mobile-columns-status'), mobileDisplayStatus: $('#mobile-display-status')
+  mobileLockIndicator: $('#mobile-lock-indicator'), mobileImmersiveToggle: $('#mobile-immersive-toggle'), mobileLockToggle: $('#mobile-lock-toggle'), mobileSwipeToggle: $('#mobile-swipe-toggle'), mobileLongpressToggle: $('#mobile-longpress-toggle'), mobileScale: $('#mobile-scale'), mobilePortraitColumns: $('#mobile-portrait-columns'), mobileLandscapeColumns: $('#mobile-landscape-columns'), mobileOrientationStatus: $('#mobile-orientation-status'), mobileColumnsStatus: $('#mobile-columns-status'), mobileDisplayStatus: $('#mobile-display-status'), fullscreenToggle: $('#fullscreen-toggle'), fullscreenSettingsButton: $('#fullscreen-settings-button'), openDevicesSettings: $('#open-devices-settings'), companionSyncBadge: $('#companion-sync-badge'), companionPcStatus: $('#companion-pc-status'), companionQualityStatus: $('#companion-quality-status'), companionAppStatus: $('#companion-app-status'), companionAudioStatus: $('#companion-audio-status'), companionLastSync: $('#companion-last-sync'), companionVersionStatus: $('#companion-version-status'), spotifyNowPlaying: $('#spotify-now-playing'), spotifyTrackStatus: $('#spotify-track-status'), spotifyArtistStatus: $('#spotify-artist-status'), spotifyPlayState: $('#spotify-play-state')
 };
 
 let state = loadState();
@@ -40,7 +41,7 @@ const pendingAcks = new Map();
 const sizeLabels = { square:'1 × 1', wide:'2 × 1', tall:'1 × 2', large:'2 × 2' };
 const actionChips = { open_url:'Web', launch_app:'App', hotkey:'Atalho', media:'Mídia', system:'Sistema', integration:'Integração', macro:'Macro' };
 const kindChips = { button:'Ação', toggle:'Toggle', macro:'Macro', volume:'Volume', media_panel:'Mídia', status:'Status', clock:'Relógio' };
-const ONBOARDING_KEY = 'nexus.deck.onboarding.v1.4';
+const ONBOARDING_KEY = 'nexus.deck.onboarding.v1.5';
 const ERROR_LOG_KEY = 'nexus.deck.errors.v1';
 let onboardingStep = 0;
 let lastDeckDiagnostic = null;
@@ -108,7 +109,7 @@ function buildDeckDiagnostic() {
   try { errors = JSON.parse(localStorage.getItem(ERROR_LOG_KEY) || '[]'); } catch {}
   add('Erros recentes', errors.length ? 'warn' : 'ok', errors.length ? `${errors.length} evento(s) registrado(s) neste iPad` : 'Nenhum erro de runtime registrado');
   return {
-    format:'nexus-deck-diagnostic', version:1, appVersion:'1.4.0', generatedAt:new Date().toISOString(),
+    format:'nexus-deck-diagnostic', version:1, appVersion:'1.5.0', generatedAt:new Date().toISOString(),
     localMode:Boolean(localConfig?.configured), localUrl:localConfig?.localUrl || null,
     activeDevice:device ? { name:device.name, platform:device.platform, transport:device.transport } : null,
     checks, errors:errors.slice(-10)
@@ -174,12 +175,87 @@ function isStandaloneDeck() {
   return Boolean(navigator.standalone) || Boolean(window.matchMedia?.('(display-mode: standalone)').matches);
 }
 
+function isDocumentFullscreen() {
+  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function fullscreenAvailable() {
+  const target = document.documentElement;
+  return Boolean(target?.requestFullscreen || target?.webkitRequestFullscreen);
+}
+
+async function toggleFullscreen() {
+  try {
+    if (isDocumentFullscreen()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) await exit.call(document);
+      return;
+    }
+    if (isStandaloneDeck()) {
+      toast('O Nexus já está em modo aplicativo pela Tela de Início.', 'success');
+      return;
+    }
+    const target = document.documentElement;
+    const request = target.requestFullscreen || target.webkitRequestFullscreen;
+    if (!request) {
+      toast('Para usar sem a barra do Safari, adicione o Nexus à Tela de Início do iPad.', '');
+      return;
+    }
+    await request.call(target, { navigationUI:'hide' });
+  } catch (error) {
+    toast('O iPad não permitiu tela cheia nesta abertura. Use “Adicionar à Tela de Início”.', 'error');
+  } finally {
+    updateMobileEnvironment();
+  }
+}
+
+function activeCompanionStatus() {
+  const device = activeDevice();
+  return device ? deviceStatuses.get(device.id) || null : null;
+}
+
+function renderCompanionCenter() {
+  const device = activeDevice();
+  const status = activeCompanionStatus();
+  const fresh = companionIsFresh(status);
+  const quality = connectionQuality(status);
+  const activeApp = status?.activeApp;
+  const rollup = integrationRollup(status || {});
+  const syncTime = status?.seenAt ? new Date(status.seenAt) : null;
+
+  els.companionSyncBadge?.classList.toggle('online', fresh);
+  els.companionSyncBadge?.classList.toggle('offline', !fresh);
+  if (els.companionSyncBadge) els.companionSyncBadge.textContent = fresh ? 'Sincronizado' : 'Offline';
+  if (els.companionPcStatus) els.companionPcStatus.textContent = device ? `${status?.hostname || device.name || 'Windows'}${fresh ? ' · online' : ' · offline'}` : 'Nenhum PC';
+  if (els.companionQualityStatus) els.companionQualityStatus.textContent = fresh ? `${quality.label}${Number.isFinite(status?.latencyMs) ? ` · ${Math.round(status.latencyMs)} ms` : ''}` : 'Offline';
+  if (els.companionAppStatus) els.companionAppStatus.textContent = activeApp?.processName ? `${activeApp.processName}${activeApp.windowTitle ? ` · ${activeApp.windowTitle}` : ''}` : '—';
+  if (els.companionAudioStatus) {
+    els.companionAudioStatus.textContent = status?.audio?.available
+      ? `${status.audio.muted ? 'Mudo' : `${status.audio.volumePercent}%`}`
+      : 'Não disponível';
+  }
+  if (els.companionLastSync) els.companionLastSync.textContent = syncTime && fresh ? syncTime.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
+  if (els.companionVersionStatus) els.companionVersionStatus.textContent = status?.version ? `V${status.version} · ${rollup.connected}/${rollup.total || 0} integrações` : '—';
+
+  const media = mediaSummary(status || {});
+  if (els.spotifyNowPlaying) {
+    const visible = media.source === 'Spotify' && Boolean(status?.spotify?.available);
+    els.spotifyNowPlaying.classList.toggle('hidden', !visible);
+    if (visible) {
+      if (els.spotifyTrackStatus) els.spotifyTrackStatus.textContent = media.title;
+      if (els.spotifyArtistStatus) els.spotifyArtistStatus.textContent = media.subtitle;
+      if (els.spotifyPlayState) els.spotifyPlayState.textContent = media.playing ? '▶ Tocando' : 'Ⅱ Pausado';
+    }
+  }
+}
+
 function updateMobileEnvironment() {
   const mobile = currentMobilePreferences();
   const orientation = orientationForViewport(window.innerWidth, window.innerHeight);
   const columns = columnsForViewport(mobile, window.innerWidth, window.innerHeight);
   document.body.classList.toggle('touch-deck', touchDeck);
   document.body.classList.toggle('standalone-deck', isStandaloneDeck());
+  document.body.classList.toggle('fullscreen-deck', isDocumentFullscreen());
   document.body.classList.toggle('control-locked', touchDeck && mobile.locked);
   document.body.dataset.mobileImmersive = String(Boolean(mobile.immersive));
   document.body.dataset.mobileScale = mobile.scale;
@@ -195,7 +271,8 @@ function updateMobileEnvironment() {
   if (els.mobileLandscapeColumns) els.mobileLandscapeColumns.value = String(mobile.landscapeColumns);
   if (els.mobileOrientationStatus) els.mobileOrientationStatus.textContent = orientation === 'landscape' ? 'Horizontal' : 'Vertical';
   if (els.mobileColumnsStatus) els.mobileColumnsStatus.textContent = touchDeck ? `${columns} colunas` : 'Layout da página';
-  if (els.mobileDisplayStatus) els.mobileDisplayStatus.textContent = isStandaloneDeck() ? 'Tela de Início · standalone' : (touchDeck ? 'Safari' : 'Desktop');
+  if (els.mobileDisplayStatus) els.mobileDisplayStatus.textContent = isDocumentFullscreen() ? 'Tela cheia' : (isStandaloneDeck() ? 'Tela de Início · standalone' : (touchDeck ? 'Safari' : 'Desktop'));
+  els.fullscreenToggle?.classList.toggle('active', isDocumentFullscreen() || isStandaloneDeck());
 }
 
 function setMobilePreference(key, value) {
@@ -699,11 +776,9 @@ function renderVolumeWidget(button, index) {
   } else {
     slider.addEventListener('input', () => { node.querySelector('.volume-value').textContent = `${slider.value}%`; slider.style.setProperty('--fill', `${slider.value}%`); });
     slider.addEventListener('change', async () => {
-      const previous = clampVolume(button.value ?? 50);
       const next = clampVolume(slider.value);
       button.value = next; persist();
-      const steps = volumeKeySteps(previous, next, 5);
-      if (steps.count) await sendMediaBurst(steps.key, steps.count, button.label);
+      await executeAction({ type:'media', key:'volume_set', value:next }, button.label, { allowOfflineVisual:true });
     });
   }
   return node;
@@ -711,7 +786,7 @@ function renderVolumeWidget(button, index) {
 
 function renderMediaWidget(button, index) {
   const node = cardBase(button, index);
-  node.innerHTML = `<span class="deck-top"><span class="deck-icon">${buttonIconMarkup(button)}</span><span class="action-chip">${editing ? 'Editar' : 'Mídia'}</span></span><div class="media-widget"><div class="media-copy"><span class="deck-label"></span><span class="deck-subtitle">Controles rápidos do Windows</span></div><div class="media-controls"><button type="button" data-media="previous" aria-label="Faixa anterior">◀</button><button type="button" class="media-primary" data-media="play_pause" aria-label="Play ou pause">▶</button><button type="button" data-media="next" aria-label="Próxima faixa">▶▶</button><button type="button" data-media="volume_mute" aria-label="Silenciar">⌁</button></div></div>${editHandleMarkup()}`;
+  node.innerHTML = `<span class="deck-top"><span class="deck-icon">${buttonIconMarkup(button)}</span><span class="action-chip">${editing ? 'Editar' : 'Mídia'}</span></span><div class="media-widget"><div class="media-copy"><span class="deck-label" data-live-media-title></span><span class="deck-subtitle" data-live-media-subtitle>Controles rápidos do Windows</span></div><div class="media-controls"><button type="button" data-media="previous" aria-label="Faixa anterior">◀</button><button type="button" class="media-primary" data-media="play_pause" aria-label="Play ou pause">▶</button><button type="button" data-media="next" aria-label="Próxima faixa">▶▶</button><button type="button" data-media="volume_mute" aria-label="Silenciar">⌁</button></div></div>${editHandleMarkup()}`;
   const fallback = node.querySelector('.fallback-icon'); if (fallback) fallback.textContent = button.icon || '▶';
   node.querySelector('.deck-label').textContent = button.label;
   if (editing) {
@@ -823,7 +898,7 @@ function updateLiveWidgets(now = new Date()) {
   document.querySelectorAll('[data-live-date]').forEach(el => { el.textContent = now.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' }); });
   const device = activeDevice();
   const status = device ? deviceStatuses.get(device.id) : null;
-  const online = Boolean(status?.online && Date.now() - status.seenAt < 25_000);
+  const online = companionIsFresh(status);
   document.querySelectorAll('[data-live-status]').forEach(el => {
     el.textContent = device ? `${online ? 'Online' : 'Offline'} · ${status?.hostname || device.name || 'Windows'}` : 'Nenhum PC conectado';
   });
@@ -831,6 +906,24 @@ function updateLiveWidgets(now = new Date()) {
   document.querySelectorAll('[data-live-latency]').forEach(el => {
     el.textContent = online && Number.isFinite(status?.latencyMs) ? `${Math.round(status.latencyMs)} ms · ${device?.transport === 'local' ? 'LAN' : 'Cloud'}` : '';
   });
+
+  if (online && status?.audio?.available) {
+    document.querySelectorAll('.volume-slider').forEach(slider => {
+      if (document.activeElement === slider) return;
+      slider.value = String(status.audio.volumePercent);
+      slider.style.setProperty('--fill', `${status.audio.volumePercent}%`);
+      slider.closest('.deck-button')?.querySelector('.volume-value')?.replaceChildren(document.createTextNode(`${status.audio.muted ? 'MUDO' : `${status.audio.volumePercent}%`}`));
+    });
+  }
+
+  const media = mediaSummary(status || {});
+  document.querySelectorAll('[data-live-media-title]').forEach(el => { el.textContent = media.title; });
+  document.querySelectorAll('[data-live-media-subtitle]').forEach(el => { el.textContent = media.subtitle; });
+  document.querySelectorAll('[data-media="play_pause"]').forEach(el => {
+    el.textContent = media.source === 'Spotify' && media.playing ? 'Ⅱ' : '▶';
+    el.setAttribute('aria-label', media.playing ? 'Pausar' : 'Reproduzir');
+  });
+  renderCompanionCenter();
 }
 
 function renderButtons() {
@@ -868,7 +961,7 @@ function renderDeviceState() {
     return;
   }
   const status = deviceStatuses.get(device.id);
-  const online = Boolean(status?.online && Date.now() - status.seenAt < 25_000);
+  const online = companionIsFresh(status);
   els.deviceName.textContent = device.name || 'PC';
   els.deviceStatusText.textContent = online ? (device.transport === 'local' ? `Local · ${Math.round(status?.latencyMs || 0)} ms` : 'Cloud · Online') : 'Offline';
   els.devicePill.classList.toggle('online', online);
@@ -882,7 +975,7 @@ function renderDeviceDialog() {
     const row = document.createElement('div');
     row.className = 'device-row';
     const status = deviceStatuses.get(device.id);
-    const online = Boolean(status?.online && Date.now() - status.seenAt < 25_000);
+    const online = companionIsFresh(status);
     row.innerHTML = `<div class="device-meta"><strong></strong><span></span></div><div></div>`;
     row.querySelector('strong').textContent = device.name;
     row.querySelector('span').textContent = `${online ? '● Online' : '○ Offline'} · ${device.transport === 'local' ? 'LAN' : 'Cloud'} · ${device.platform || 'Windows'}${online && Number.isFinite(status?.latencyMs) ? ` · ${Math.round(status.latencyMs)} ms` : ''}`;
@@ -1237,7 +1330,7 @@ async function connectionForAction({ allowOfflineVisual = false } = {}) {
   }
   const connection = deviceChannels.get(device.id);
   const status = deviceStatuses.get(device.id);
-  const online = Boolean(status?.online && Date.now() - status.seenAt < 25_000);
+  const online = companionIsFresh(status);
   if (!connection || !online) { toast('O computador está offline ou reconectando.', 'error'); return null; }
   if (device.transport !== 'local' && !connection?.channel?.joined) { toast('O Cloud Relay está reconectando.', 'error'); return null; }
   return { device, connection };
@@ -1246,8 +1339,16 @@ async function connectionForAction({ allowOfflineVisual = false } = {}) {
 async function sendLocalCommand(device, connection, action) {
   const id = randomId(12);
   const command = createCommand(action, id);
+  const started = performance.now();
   const response = await sendLocalMessage(device, connection.key, command);
   if (response.type !== 'ack' || response.body?.commandId !== id) throw new Error('Confirmação local inválida');
+  if (response.body?.state) {
+    const previous = deviceStatuses.get(device.id) || {};
+    const normalized = normalizeCompanionStatus(response.body.state, { latencyMs:performance.now()-started, seenAt:Date.now(), transport:'local' });
+    deviceStatuses.set(device.id, { ...previous, ...normalized });
+    if (device.id === activeDevice()?.id) applySmartProfile(normalized);
+    renderDeviceState();
+  }
   return response.body;
 }
 
@@ -1261,6 +1362,23 @@ async function broadcastAction(action, options = {}) {
   const envelope = await encryptJson(command, connection.key, `nexus:${device.roomId}:v1`);
   connection.channel.broadcast(envelope);
   return id;
+}
+
+
+function setKeyFeedback(buttonId, phase, message = '') {
+  if (!buttonId) return;
+  const card = document.querySelector(`.deck-button[data-button-id="${CSS.escape(buttonId)}"]`);
+  if (!card) return;
+  card.classList.remove('key-sending','key-success','key-error');
+  if (phase) card.classList.add(`key-${phase}`);
+  let badge = card.querySelector('.key-feedback');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.className = 'key-feedback';
+    card.append(badge);
+  }
+  badge.textContent = message || (phase === 'sending' ? 'ENVIANDO' : phase === 'success' ? 'OK' : phase === 'error' ? 'ERRO' : '');
+  if (!phase) badge.remove();
 }
 
 async function executeAction(action, label = 'Controle', options = {}) {
@@ -1337,7 +1455,11 @@ async function executeMacro(button) {
 
 async function executeButton(button) {
   if (button.action?.type === 'macro' || normalizeKind(button.kind) === 'macro') return executeMacro(button);
-  return executeAction(button.action, button.label);
+  setKeyFeedback(button.id, 'sending');
+  const ok = await executeAction(button.action, button.label);
+  setKeyFeedback(button.id, ok ? 'success' : 'error');
+  setTimeout(() => setKeyFeedback(button.id, ''), ok ? 650 : 1200);
+  return ok;
 }
 
 function waitForAck(commandId, timeoutMs) {
@@ -1352,8 +1474,9 @@ async function pollLocalDevice(device, connection) {
   try {
     const message = await sendLocalMessage(device, connection.key, createPing());
     if (message.type !== 'status') throw new Error('Status local inválido');
-    deviceStatuses.set(device.id, { ...message.body, online:true, latencyMs:performance.now() - started, seenAt:Date.now() });
-    if (device.id === activeDevice()?.id) applySmartProfile(message.body);
+    const status = normalizeCompanionStatus(message.body, { latencyMs:performance.now()-started, seenAt:Date.now(), transport:'local' });
+    deviceStatuses.set(device.id, status);
+    if (device.id === activeDevice()?.id) applySmartProfile(status);
   } catch {
     const previous = deviceStatuses.get(device.id) || {};
     deviceStatuses.set(device.id, { ...previous, online:false, seenAt:Date.now() });
@@ -1371,7 +1494,7 @@ async function connectLocalDevice(device) {
   const connection = { transport:'local', key, timer:null };
   deviceChannels.set(device.id, connection);
   await pollLocalDevice(device, connection);
-  connection.timer = setInterval(() => pollLocalDevice(device, connection), 5000);
+  connection.timer = setInterval(() => pollLocalDevice(device, connection), document.hidden ? 8000 : 2500);
 }
 
 async function connectCloudDevice(device) {
@@ -1381,8 +1504,9 @@ async function connectCloudDevice(device) {
     try {
       const message = await decryptJson(payload, key, `nexus:${device.roomId}:v1`);
       if (message.type === 'status') {
-        deviceStatuses.set(device.id, { ...message.body, online:true, seenAt:Date.now() });
-        if (device.id === activeDevice()?.id) applySmartProfile(message.body);
+        const status = normalizeCompanionStatus(message.body, { seenAt:Date.now(), transport:'cloud' });
+        deviceStatuses.set(device.id, status);
+        if (device.id === activeDevice()?.id) applySmartProfile(status);
         renderDeviceState();
         if (els.deviceDialog.open) renderDeviceDialog();
       } else if (message.type === 'ack') pendingAcks.get(message.body.commandId)?.(message.body);
@@ -1524,6 +1648,11 @@ els.pairStart.addEventListener('click', async () => {
   } catch (error) { els.pairProgress.textContent = error.message; toast(error.message, 'error'); }
   finally { els.pairStart.disabled = false; }
 });
+els.fullscreenToggle?.addEventListener('click', toggleFullscreen);
+els.fullscreenSettingsButton?.addEventListener('click', toggleFullscreen);
+els.openDevicesSettings?.addEventListener('click', () => { els.settingsDialog?.close(); renderDeviceDialog(); els.deviceDialog?.showModal(); });
+document.addEventListener('fullscreenchange', updateMobileEnvironment);
+document.addEventListener('webkitfullscreenchange', updateMobileEnvironment);
 els.mobileImmersiveToggle?.addEventListener('change', () => setMobilePreference('immersive', els.mobileImmersiveToggle.checked));
 els.mobileLockToggle?.addEventListener('change', () => {
   setMobilePreference('locked', els.mobileLockToggle.checked);

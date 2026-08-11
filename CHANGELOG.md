@@ -1,20 +1,18 @@
 # Changelog
 
-## 1.4.0 — iPad / Mobile First
+## 1.5.0 — Companion Sync + iPad Immersivo
 
-- Experiência touch própria para iPad, separada do comportamento desktop.
-- Grade por orientação com quantidade de colunas independente em portrait e landscape.
-- Escala mobile de teclas: compacta, normal e grande.
-- Swipe horizontal entre páginas com supressão do clique acidental após o gesto.
-- Long press para abrir a edição de uma tecla diretamente no iPad.
-- Modo de bloqueio desativa edição e long press durante uso diário.
-- Modo controle imersivo reduz cabeçalho e elementos administrativos.
-- Editor, páginas, layout, dispositivos e ajustes passam a abrir como bottom sheets em dispositivos touch.
-- Navegação inferior fixa e compacta, respeitando safe areas do iPadOS.
-- Preferências mobile persistidas e incluídas no Backup V2.
-- Novo módulo testável `js/core/mobile.js`.
-- PWA atualizada para cache `nexus-deck-v1.4.0`.
-- Companion e Setup recompilados com a interface local V1.4.
+- Companion passa a devolver um snapshot de estado junto de cada comando local.
+- Sincronização local reduzida para aproximadamente 2,5 s quando a página está ativa.
+- Novo Companion Sync Center no iPad.
+- Leitura de volume e mute reais do Windows por Core Audio.
+- Novo comando seguro `media.volume_set` para slider absoluto.
+- Spotify Now Playing aproveita metadados já retornados pela Web API.
+- Feedback visual de envio/sucesso/erro por tecla.
+- Novo controle de tela cheia e refinamentos para Home Screen/standalone.
+- Novo módulo `companion-sync.js` e testes dedicados.
+
+# Changelog
 
 ## 1.2.0 — Layout Engine
 

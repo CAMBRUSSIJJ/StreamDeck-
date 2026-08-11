@@ -856,7 +856,7 @@ body[data-layout="minimal"] .deck-stage{max-width:1020px}body[data-layout="contr
 body[data-theme="ivory"] .deck-stage{background:#d8d7d2;border-color:#c7c6c0;box-shadow:inset 0 0 0 5px #e7e5df,0 14px 38px rgba(50,48,42,.12)}body[data-theme="ivory"] .deck-button,body[data-theme="ivory"][data-card-style] .deck-button{background:#f7f6f2;border-color:#c9c8c2;box-shadow:inset 0 1px 0 #fff,inset 0 -3px 0 #d5d3cd,0 2px 0 #bbb9b3}body[data-theme="ivory"] .deck-button:hover{background:#fff}body[data-theme="ivory"] .page-dock{background:#e7e5df;border-color:#cac8c2}body[data-theme="ivory"] .page-tab.active{background:#f8f7f3}
 
 /* ========================================================================== */
-/* Nexus Deck V1.4 — iPad / Mobile First                                     */
+/* Nexus Deck V1.5 — iPad / Mobile First                                     */
 /* ========================================================================== */
 .mobile-lock-indicator{width:34px;height:34px;display:grid;place-items:center;border:1px solid #30333a;border-radius:10px;background:#111317;color:#aeb5c0}.mobile-lock-indicator .ui-icon{width:15px;height:15px}
 .mobile-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.mobile-settings-grid .settings-toggle{min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025)}
@@ -892,3 +892,49 @@ body.touch-deck .layout-preset-grid{grid-template-columns:repeat(2,minmax(0,1fr)
 @media(max-width:620px){.mobile-settings-grid,.mobile-settings-selects,.mobile-control-preview{grid-template-columns:1fr}.mobile-settings-selects{gap:8px}body.touch-deck .form-grid,body.touch-deck .layout-controls-grid{grid-template-columns:1fr}body.touch-deck .layout-preset-grid{grid-template-columns:1fr 1fr}}
 body.touch-deck[data-dock="hidden"] .page-dock{display:none!important}
 body.touch-deck[data-dock="hidden"] .app-shell{padding-bottom:max(12px,env(safe-area-inset-bottom))}
+
+
+/* V1.5 — Companion Sync + iPad Immersive */
+.fullscreen-button.active{color:var(--success);border-color:rgba(66,217,139,.34)}
+.sync-badge{display:inline-flex;align-items:center;min-height:26px;padding:0 9px;border-radius:999px;border:1px solid var(--line);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sync-badge.online{color:var(--success);border-color:rgba(66,217,139,.26);background:rgba(66,217,139,.07)}
+.sync-badge.offline{color:var(--muted);background:rgba(255,255,255,.025)}
+.companion-live-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.companion-live-grid>div{min-height:72px;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:#0d1015;display:flex;flex-direction:column;gap:7px}
+.companion-live-grid span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.companion-live-grid strong{font-size:12px;font-weight:650;line-height:1.35;overflow:hidden;text-overflow:ellipsis}
+.spotify-now-playing{margin-top:10px;padding:12px 13px;border:1px solid rgba(30,215,96,.20);border-radius:13px;background:rgba(30,215,96,.045);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
+.spotify-live-dot{width:8px;height:8px;border-radius:50%;background:#1ed760;box-shadow:0 0 0 4px rgba(30,215,96,.08)}
+.spotify-now-playing>div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.spotify-now-playing strong,.spotify-now-playing span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spotify-now-playing>div span{font-size:10px;color:var(--muted)}
+.spotify-play-state{font-size:10px;font-weight:800;color:#1ed760}
+.key-feedback{position:absolute;right:8px;bottom:7px;z-index:7;padding:3px 6px;border-radius:5px;background:#08090b;border:1px solid #2b2e33;color:#aeb6c3;font-size:7px;font-weight:900;letter-spacing:.08em;pointer-events:none}
+.deck-button.key-sending{border-color:rgba(100,120,255,.5)!important}
+.deck-button.key-sending .key-feedback{color:#aeb8ff;border-color:rgba(100,120,255,.35)}
+.deck-button.key-success{border-color:rgba(66,217,139,.45)!important}
+.deck-button.key-success .key-feedback{color:var(--success);border-color:rgba(66,217,139,.30)}
+.deck-button.key-error{border-color:rgba(255,101,115,.52)!important}
+.deck-button.key-error .key-feedback{color:var(--danger);border-color:rgba(255,101,115,.32)}
+
+body.touch-deck[data-mobile-immersive="true"].standalone-deck .workspace-head,
+body.touch-deck[data-mobile-immersive="true"].fullscreen-deck .workspace-head{display:none}
+body.touch-deck[data-mobile-immersive="true"].standalone-deck .topbar,
+body.touch-deck[data-mobile-immersive="true"].fullscreen-deck .topbar{position:fixed;z-index:22;top:max(4px,env(safe-area-inset-top));right:max(6px,env(safe-area-inset-right));width:auto;height:38px;border:0;display:flex;justify-content:flex-end;pointer-events:none}
+body.touch-deck[data-mobile-immersive="true"].standalone-deck .brand-block,
+body.touch-deck[data-mobile-immersive="true"].standalone-deck .topbar-center,
+body.touch-deck[data-mobile-immersive="true"].fullscreen-deck .brand-block,
+body.touch-deck[data-mobile-immersive="true"].fullscreen-deck .topbar-center{display:none}
+body.touch-deck[data-mobile-immersive="true"].standalone-deck .topbar-actions,
+body.touch-deck[data-mobile-immersive="true"].fullscreen-deck .topbar-actions{pointer-events:auto;opacity:.72}
+body.touch-deck[data-mobile-immersive="true"].standalone-deck .app-shell,
+body.touch-deck[data-mobile-immersive="true"].fullscreen-deck .app-shell{padding-top:max(7px,env(safe-area-inset-top))}
+body.touch-deck[data-mobile-immersive="true"].standalone-deck .deck-stage,
+body.touch-deck[data-mobile-immersive="true"].fullscreen-deck .deck-stage{margin-top:0}
+
+@media(max-width:760px){
+  .companion-live-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:460px){
+  .companion-live-grid{grid-template-columns:1fr}
+}

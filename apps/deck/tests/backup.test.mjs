@@ -12,7 +12,7 @@ test('portable backup v2 excludes device credentials and adds checksum', () => {
   const backup = exportPortableState(state);
   assert.equal(backup.format, 'nexus-deck-backup');
   assert.equal(backup.version, 2);
-  assert.equal(backup.appVersion, '1.4.0');
+  assert.equal(backup.appVersion, '1.5.0');
   assert.equal('devices' in backup, false);
   assert.equal(JSON.stringify(backup).includes('hidden'), false);
   assert.equal(backup.checksum, backupChecksum(backup));

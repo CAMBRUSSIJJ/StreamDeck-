@@ -1,7 +1,7 @@
 {
   "name": "Nexus Deck",
   "short_name": "Nexus",
-  "description": "Nexus Deck Mobile First: transforme o iPad em uma superfície de controle local para o Windows.",
+  "description": "Nexus Deck V1.5: iPad imersivo com sincronização bidirecional ao Nexus Companion no Windows.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

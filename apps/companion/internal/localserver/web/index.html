@@ -44,6 +44,9 @@
           <span class="chevron" aria-hidden="true">⌄</span>
         </button>
         <span id="mobile-lock-indicator" class="mobile-lock-indicator hidden" aria-label="Edição bloqueada" title="Edição bloqueada"><span class="ui-icon" data-icon="lock"></span></span>
+        <button id="fullscreen-toggle" class="icon-button fullscreen-button" type="button" aria-label="Alternar tela cheia" title="Tela cheia">
+          <span class="ui-icon" data-icon="fullscreen"></span>
+        </button>
         <button id="settings-open" class="icon-button" type="button" aria-label="Configurações">
           <span class="ui-icon" data-icon="settings"></span>
         </button>
@@ -362,6 +365,23 @@
         <p class="settings-note">No modo bloqueado o botão de edição e o long press ficam desativados. Para desbloquear, abra Ajustes novamente.</p>
       </section>
 
+      <section class="settings-section companion-sync-settings">
+        <div class="settings-heading"><div><h3>Companion Sync</h3><p>Estado vivo do Windows recebido diretamente pelo Nexus Local.</p></div><span id="companion-sync-badge" class="sync-badge offline">Offline</span></div>
+        <div class="companion-live-grid">
+          <div><span>Computador</span><strong id="companion-pc-status">Nenhum PC</strong></div>
+          <div><span>Conexão</span><strong id="companion-quality-status">Offline</strong></div>
+          <div><span>Aplicativo ativo</span><strong id="companion-app-status">—</strong></div>
+          <div><span>Áudio do Windows</span><strong id="companion-audio-status">—</strong></div>
+          <div><span>Última sincronização</span><strong id="companion-last-sync">—</strong></div>
+          <div><span>Companion</span><strong id="companion-version-status">—</strong></div>
+        </div>
+        <div class="settings-actions-row">
+          <button id="fullscreen-settings-button" class="ghost-button" type="button"><span class="ui-icon" data-icon="fullscreen"></span> Tela cheia</button>
+          <button id="open-devices-settings" class="ghost-button" type="button"><span class="ui-icon" data-icon="link"></span> Computadores</button>
+        </div>
+        <p class="settings-note">No iPad instalado pela Tela de Início, o Nexus já abre sem a barra do Safari. O botão Tela cheia tenta ampliar ainda mais quando o WebKit permitir.</p>
+      </section>
+
       <section class="settings-section">
         <div class="settings-heading"><div><h3>Perfis inteligentes</h3><p>Troque automaticamente de página conforme o aplicativo em primeiro plano no Windows.</p></div></div>
         <div class="smart-profile-settings">
@@ -379,6 +399,11 @@
           <div><span>Discord</span><strong id="integration-discord-status">Sem dados</strong></div>
           <div><span>Navegador</span><strong id="integration-browser-status">Sem dados</strong></div>
         </div>
+        <div id="spotify-now-playing" class="spotify-now-playing hidden">
+          <span class="spotify-live-dot"></span>
+          <div><strong id="spotify-track-status">Spotify</strong><span id="spotify-artist-status">Sem reprodução ativa</span></div>
+          <span id="spotify-play-state" class="spotify-play-state">—</span>
+        </div>
         <p class="settings-note">OBS usa obs-websocket. Spotify usa OAuth/Web API. Discord e navegador usam uma camada desktop segura e configurável.</p>
       </section>
 
@@ -389,7 +414,7 @@
           <div><span>Endereço local</span><strong id="local-url">—</strong></div>
           <div><span>Cloud Relay</span><strong id="cloud-status">Verificando…</strong></div>
           <div><span>Protocolo</span><strong>v1 · AES-256-GCM</strong></div>
-          <div><span>Interface</span><strong>V1.4.0 · iPad / Mobile First</strong></div>
+          <div><span>Interface</span><strong>V1.5.0 · Companion Sync + iPad Immersivo</strong></div>
         </div>
         <div class="settings-actions-row diagnostic-actions-row">
           <button id="deck-diagnostic" class="ghost-button" type="button">Diagnóstico rápido</button>
@@ -423,7 +448,7 @@
     <div class="dialog-content">
       <div class="onboarding-top">
         <div class="brand-mark onboarding-mark" aria-hidden="true"><span></span><span></span></div>
-        <div><div class="section-kicker">NEXUS DECK V1.4</div><h2>Seu control deck está pronto.</h2></div>
+        <div><div class="section-kicker">NEXUS DECK V1.5</div><h2>Seu control deck está pronto.</h2></div>
         <button id="onboarding-close" class="icon-button dialog-close" aria-label="Fechar"><span class="ui-icon" data-icon="x"></span></button>
       </div>
       <div class="onboarding-progress"><span id="onboarding-progress-bar"></span></div>

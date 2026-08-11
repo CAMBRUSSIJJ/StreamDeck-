@@ -8,6 +8,7 @@ const icons = {
   volumeDown: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M11 5 6.5 9H3v6h3.5L11 19V5Z"/><path d="M15 9a4 4 0 0 1 0 6"/></svg>',
   next: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="m5 6 8 6-8 6V6Z"/><path d="m13 6 8 6-8 6V6ZM21 6v12"/></svg>',
   previous: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="m19 6-8 6 8 6V6Z"/><path d="m11 6-8 6 8 6V6ZM3 6v12"/></svg>',
+  fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg>',
   settings: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7a7 7 0 0 0-.8-1.8l.9-2-2.1-2.1-2 .9a7 7 0 0 0-1.8-.8L10.5 2h-3L6.8 4a7 7 0 0 0-1.8.8l-2-.9L.9 6l.9 2A7 7 0 0 0 1 9.8l-2 .7v3l2 .7A7 7 0 0 0 1.8 16l-.9 2L3 20.1l2-.9a7 7 0 0 0 1.8.8l.7 2h3l.7-2a7 7 0 0 0 1.8-.8l2 .9 2.1-2.1-.9-2a7 7 0 0 0 .8-1.8l2-.7Z" transform="translate(1.5 0) scale(.87)"/></svg>',
   edit: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>',
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg>',

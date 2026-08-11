@@ -1,6 +1,6 @@
 import { validateIntegrationAction } from './integrations.js';
 export const PROTOCOL_VERSION = 1;
-export const APP_VERSION = '1.4.0';
+export const APP_VERSION = '1.5.0';
 
 export const actionLabels = {
   open_url: 'Abrir URL',
@@ -12,7 +12,7 @@ export const actionLabels = {
   macro: 'Macro'
 };
 
-const mediaKeys = new Set(['play_pause', 'next', 'previous', 'volume_up', 'volume_down', 'volume_mute']);
+const mediaKeys = new Set(['play_pause', 'next', 'previous', 'volume_up', 'volume_down', 'volume_mute', 'volume_set']);
 const systemKeys = new Set(['lock']);
 const macroConditions = new Set(['always', 'previous_success', 'previous_failed']);
 
@@ -34,6 +34,7 @@ function validatePrimitiveAction(action) {
       return true;
     case 'media':
       if (!mediaKeys.has(action.key)) throw new Error('Comando de mídia inválido');
+      if (action.key === 'volume_set' && (!Number.isFinite(Number(action.value)) || Number(action.value) < 0 || Number(action.value) > 100)) throw new Error('Volume inválido');
       return true;
     case 'system':
       if (!systemKeys.has(action.key)) throw new Error('Comando de sistema inválido');

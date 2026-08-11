@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"nexusdeck/companion/internal/systemstate"
 )
 
 type MacroStep struct {
@@ -25,6 +27,7 @@ type Action struct {
 	Args        []string       `json:"args,omitempty"`
 	Keys        []string       `json:"keys,omitempty"`
 	Key         string         `json:"key,omitempty"`
+	Value       *int           `json:"value,omitempty"`
 	Service     string         `json:"service,omitempty"`
 	Command     string         `json:"command,omitempty"`
 	Params      map[string]any `json:"params,omitempty"`
@@ -105,6 +108,10 @@ func validateAction(a Action, depth int) error {
 	case "media":
 		switch a.Key {
 		case "play_pause", "next", "previous", "volume_up", "volume_down", "volume_mute":
+		case "volume_set":
+			if a.Value == nil || *a.Value < 0 || *a.Value > 100 {
+				return errors.New("volume_set requires value between 0 and 100")
+			}
 		default:
 			return errors.New("unsupported media key")
 		}
@@ -183,6 +190,12 @@ func executePrimitive(a Action, integration IntegrationExecutor) (map[string]any
 	case "hotkey":
 		return nil, sendHotkey(a.Keys)
 	case "media":
+		if a.Key == "volume_set" {
+			if a.Value == nil {
+				return nil, errors.New("volume value missing")
+			}
+			return nil, systemstate.SetAudioVolume(*a.Value)
+		}
 		return nil, sendMediaKey(a.Key)
 	case "system":
 		return nil, runSystemAction(a.Key)

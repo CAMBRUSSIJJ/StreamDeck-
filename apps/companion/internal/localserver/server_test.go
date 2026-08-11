@@ -71,7 +71,8 @@ func TestSimpleLocalPingRequiresDeviceToken(t *testing.T) {
 	}
 	var body struct {
 		Message struct {
-			Type string `json:"type"`
+			Type string         `json:"type"`
+			Body map[string]any `json:"body"`
 		} `json:"message"`
 	}
 	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil {
@@ -79,6 +80,12 @@ func TestSimpleLocalPingRequiresDeviceToken(t *testing.T) {
 	}
 	if body.Message.Type != "status" {
 		t.Fatalf("expected status response, got %q", body.Message.Type)
+	}
+	if _, ok := body.Message.Body["audio"]; !ok {
+		t.Fatalf("expected audio state in status: %+v", body.Message.Body)
+	}
+	if _, ok := body.Message.Body["syncSequence"]; !ok {
+		t.Fatalf("expected sync sequence in status: %+v", body.Message.Body)
 	}
 }
 

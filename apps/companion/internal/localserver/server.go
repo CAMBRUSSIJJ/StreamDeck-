@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"nexusdeck/companion/internal/actions"
@@ -22,6 +23,7 @@ import (
 	"nexusdeck/companion/internal/localpair"
 	"nexusdeck/companion/internal/protocol"
 	"nexusdeck/companion/internal/store"
+	"nexusdeck/companion/internal/systemstate"
 )
 
 //go:embed web/* web/assets/icons/* web/js/* web/js/core/* web/js/ui/*
@@ -35,6 +37,7 @@ type Server struct {
 	startedAt    time.Time
 	replayMu     sync.Mutex
 	recent       map[string]map[string]time.Time
+	statusSeq    atomic.Uint64
 }
 
 type secureRequest struct {
@@ -199,25 +202,38 @@ func (s *Server) handleMessageSimple(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]any{"message": response, "security": "lan-token"})
 }
 
+func (s *Server) snapshotStatus() map[string]any {
+	host, _ := os.Hostname()
+	if host == "" {
+		host = "Windows PC"
+	}
+	now := time.Now()
+	status := map[string]any{
+		"online":        true,
+		"hostname":      host,
+		"platform":      platformName(),
+		"version":       protocol.AppVersion,
+		"transport":     "local",
+		"uptimeSeconds": int64(now.Sub(s.startedAt).Seconds()),
+		"serverTime":    now.UTC().Format(time.RFC3339Nano),
+		"syncSequence":  s.statusSeq.Add(1),
+	}
+	if active, ok := foreground.Current(); ok {
+		status["activeApp"] = active
+	}
+	if s.integrations != nil {
+		status["integrations"] = s.integrations.Statuses()
+	}
+	for key, value := range systemstate.Snapshot() {
+		status[key] = value
+	}
+	return status
+}
+
 func (s *Server) processMessage(message wireMessage) (wireMessage, error) {
 	switch message.Type {
 	case "ping":
-		host, _ := os.Hostname()
-		status := map[string]any{
-			"online":        true,
-			"hostname":      host,
-			"platform":      platformName(),
-			"version":       protocol.AppVersion,
-			"transport":     "local",
-			"uptimeSeconds": int64(time.Since(s.startedAt).Seconds()),
-		}
-		if active, ok := foreground.Current(); ok {
-			status["activeApp"] = active
-		}
-		if s.integrations != nil {
-			status["integrations"] = s.integrations.Statuses()
-		}
-		body, _ := json.Marshal(status)
+		body, _ := json.Marshal(s.snapshotStatus())
 		return wireMessage{Type: "status", ID: mustRandom(10), TS: time.Now().UnixMilli(), Body: body}, nil
 	case "command":
 		body, execErr := actions.DecodeBody(message.Body)
@@ -225,7 +241,7 @@ func (s *Server) processMessage(message wireMessage) (wireMessage, error) {
 		if execErr == nil {
 			report, execErr = actions.ExecuteWithReport(body.Action, s.integrations)
 		}
-		ack := map[string]any{"commandId": message.ID, "ok": execErr == nil}
+		ack := map[string]any{"commandId": message.ID, "ok": execErr == nil, "state": s.snapshotStatus()}
 		if body.Action.Type == "macro" || body.Action.Type == "integration" {
 			ack["report"] = report
 		}

@@ -135,3 +135,17 @@ func TestMacroCanExecuteIntegrationStep(t *testing.T) {
 		t.Fatalf("unexpected macro integration report: %+v", report)
 	}
 }
+
+func TestValidAbsoluteVolume(t *testing.T) {
+	value := 64
+	if err := Validate(Action{Type: "media", Key: "volume_set", Value: &value}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRejectsInvalidAbsoluteVolume(t *testing.T) {
+	value := 140
+	if err := Validate(Action{Type: "media", Key: "volume_set", Value: &value}); err == nil {
+		t.Fatal("volume_set acima de 100 deveria ser rejeitado")
+	}
+}

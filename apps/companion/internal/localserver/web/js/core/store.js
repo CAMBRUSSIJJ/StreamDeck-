@@ -126,7 +126,7 @@ export function exportPortableState(state) {
   const payload = {
     format: 'nexus-deck-backup',
     version: 2,
-    appVersion: '1.4.0',
+    appVersion: '1.5.0',
     exportedAt: new Date().toISOString(),
     activePageId: state.activePageId,
     preferences: clone(state.preferences || defaults.preferences),
